@@ -1297,6 +1297,126 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP 20 QT.query_sql_text, SP.query_plan,\n\tRS.min_duration/1000000 as min_duration_sec, \n\tRS.avg_duration/1000000 as avg_duration_sec, \n\tRS.[max_duration]/1000000 as max_duration_sec,\n\tRS.min_tempdb_space_used * 8192 / 1024 / 1024 as min_tempdb_MB,\n\tRS.avg_tempdb_space_used * 8192 / 1024 / 1024 as avg_tempdb_MB,\n\tRS.max_tempdb_space_used * 8192 / 1024 / 1024 as max_tempdb_MB\nFROM sys.query_store_query SQ\nINNER JOIN sys.query_store_query_text QT \n\tON SQ.query_text_id = QT.query_text_id\nINNER JOIN sys.query_store_plan SP \n\tON SQ.query_id = SP.query_id\nINNER JOIN sys.query_store_runtime_stats RS \n\tON SP.plan_id = RS.plan_id\nORDER BY avg_duration DESC\n\nselect * from sys.query_context_settings\n\nSELECT current_storage_size_mb, max_storage_size_mb\nFROM sys.database_query_store_options;\n\nALTER DATABASE jhs2gt2acq3getmwpocws1p1\nSET QUERY_STORE (\n    OPERATION_MODE = READ_WRITE,\n    CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 30),\n    DATA_FLUSH_INTERVAL_SECONDS = 3000,\n    MAX_STORAGE_SIZE_MB = 500,\n    INTERVAL_LENGTH_MINUTES = 15,\n    SIZE_BASED_CLEANUP_MODE = AUTO,\n    QUERY_CAPTURE_MODE = AUTO,\n    MAX_PLANS_PER_QUERY = 1000,\n    WAIT_STATS_CAPTURE_MODE = ON\n);\n\nSELECT name, is_auto_create_stats_on\nFROM sys.databases\n\n-- Monitor active queries\nSELECT *\nFROM sys.dm_pdw_exec_requests\nWHERE status not in ('Completed','Failed','Cancelled')\n  AND session_id <> session_id()\nORDER BY submit_time DESC;\n\n-- Find top 10 queries longest running queries\nSELECT TOP 10 *\nFROM sys.dm_pdw_exec_requests\nORDER BY total_elapsed_time DESC;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [context_settings_id]\n,[set_options]\n,[language_id]\n,[date_format]\n,[date_first]\n,[status]\n,[required_cursor_options]\n,[acceptable_cursor_options]\n,[merge_action_type]\n,[default_schema_id]\n,[is_replication_specific]\n,[is_contained]\n FROM [sys].[query_context_settings]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [plan_id]\n,[query_id]\n,[plan_group_id]\n,[engine_version]\n,[compatibility_level]\n,[query_plan_hash]\n,[query_plan]\n,[is_online_index_plan]\n,[is_trivial_plan]\n,[is_parallel_plan]\n,[is_forced_plan]\n,[is_natively_compiled]\n,[force_failure_count]\n,[last_force_failure_reason]\n,[last_force_failure_reason_desc]\n,[count_compiles]\n,[initial_compile_start_time]\n,[last_compile_start_time]\n,[last_execution_time]\n,[avg_compile_duration]\n,[last_compile_duration]\n,[plan_forcing_type]\n,[plan_forcing_type_desc]\n FROM [sys].[query_store_plan]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [runtime_stats_id]\n,[plan_id]\n,[runtime_stats_interval_id]\n,[execution_type]\n,[execution_type_desc]\n,[first_execution_time]\n,[last_execution_time]\n,[count_executions]\n,[avg_duration]\n,[last_duration]\n,[min_duration]\n,[max_duration]\n,[stdev_duration]\n,[avg_cpu_time]\n,[last_cpu_time]\n,[min_cpu_time]\n,[max_cpu_time]\n,[stdev_cpu_time]\n,[avg_logical_io_reads]\n,[last_logical_io_reads]\n,[min_logical_io_reads]\n,[max_logical_io_reads]\n,[stdev_logical_io_reads]\n,[avg_logical_io_writes]\n,[last_logical_io_writes]\n,[min_logical_io_writes]\n,[max_logical_io_writes]\n,[stdev_logical_io_writes]\n,[avg_physical_io_reads]\n,[last_physical_io_reads]\n,[min_physical_io_reads]\n,[max_physical_io_reads]\n,[stdev_physical_io_reads]\n,[avg_clr_time]\n,[last_clr_time]\n,[min_clr_time]\n,[max_clr_time]\n,[stdev_clr_time]\n,[avg_dop]\n,[last_dop]\n,[min_dop]\n,[max_dop]\n,[stdev_dop]\n,[avg_query_max_used_memory]\n,[last_query_max_used_memory]\n,[min_query_max_used_memory]\n,[max_query_max_used_memory]\n,[stdev_query_max_used_memory]\n,[avg_rowcount]\n,[last_rowcount]\n,[min_rowcount]\n,[max_rowcount]\n,[stdev_rowcount]\n,[avg_num_physical_io_reads]\n,[last_num_physical_io_reads]\n,[min_num_physical_io_reads]\n,[max_num_physical_io_reads]\n,[stdev_num_physical_io_reads]\n,[avg_log_bytes_used]\n,[last_log_bytes_used]\n,[min_log_bytes_used]\n,[max_log_bytes_used]\n,[stdev_log_bytes_used]\n,[avg_tempdb_space_used]\n,[last_tempdb_space_used]\n,[min_tempdb_space_used]\n,[max_tempdb_space_used]\n,[stdev_tempdb_space_used]\n,[avg_page_server_io_reads]\n,[last_page_server_io_reads]\n,[min_page_server_io_reads]\n,[max_page_server_io_reads]\n,[stdev_page_server_io_reads]\n FROM [sys].[query_store_runtime_stats]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 5')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [runtime_stats_interval_id]\n,[start_time]\n,[end_time]\n,[comment]\n FROM [sys].[query_store_runtime_stats_interval]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 6')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [query_id]\n,[query_text_id]\n,[context_settings_id]\n,[object_id]\n,[batch_sql_handle]\n,[query_hash]\n,[is_internal_query]\n,[query_parameterization_type]\n,[query_parameterization_type_desc]\n,[initial_compile_start_time]\n,[last_compile_start_time]\n,[last_execution_time]\n,[last_compile_batch_sql_handle]\n,[last_compile_batch_offset_start]\n,[last_compile_batch_offset_end]\n,[count_compiles]\n,[avg_compile_duration]\n,[last_compile_duration]\n,[avg_bind_duration]\n,[last_bind_duration]\n,[avg_bind_cpu_time]\n,[last_bind_cpu_time]\n,[avg_optimize_duration]\n,[last_optimize_duration]\n,[avg_optimize_cpu_time]\n,[last_optimize_cpu_time]\n,[avg_compile_memory_kb]\n,[last_compile_memory_kb]\n,[max_compile_memory_kb]\n,[is_clouddb_internal_query]\n FROM [sys].[query_store_query]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Data Exploration and ML Modeling - NYC taxi predict using Spark MLlib')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
@@ -1317,7 +1437,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "58030db0-faea-4841-b998-3fc278263436"
+						"spark.autotune.trackingId": "57f0d8fe-31ae-4c60-a8fb-2af9c17f2092"
 					}
 				},
 				"metadata": {
@@ -1342,15 +1462,13 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 5,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"# Predict NYC Taxi Tips using Spark ML and Azure Open Datasets\n",
 							"\n",
@@ -1363,7 +1481,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"import matplotlib.pyplot as plt\n",
 							"\n",
@@ -1386,7 +1503,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Ingest Data¶ \n",
 							"\n",
@@ -1395,7 +1511,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Import NYC yellow cab data from Azure Open Datasets\n",
 							"from azureml.opendatasets import NycTlcYellow\n",
@@ -1414,7 +1529,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#To make development easier, faster and less expensive downsample for now\n",
 							"sampled_taxi_df = nyc_tlc_df.sample(True, 0.001, seed=1234)"
@@ -1424,7 +1538,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Exploratory Data Analysis\n",
 							"\n",
@@ -1433,7 +1546,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#The charting package needs a Pandas dataframe or numpy array do the conversion\n",
 							"sampled_taxi_pd_df = sampled_taxi_df.toPandas()\n",
@@ -1468,7 +1580,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Data Prep and Featurization\n",
 							"\n",
@@ -1480,7 +1591,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"taxi_df = sampled_taxi_df.select('totalAmount', 'fareAmount', 'tipAmount', 'paymentType', 'rateCodeId', 'passengerCount'\\\n",
 							"                                , 'tripDistance', 'tpepPickupDateTime', 'tpepDropoffDateTime'\\\n",
@@ -1503,7 +1613,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Data Prep and Featurization Part 2\n",
 							"\n",
@@ -1515,7 +1624,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"taxi_featurised_df = taxi_df.select('totalAmount', 'fareAmount', 'tipAmount', 'paymentType', 'passengerCount'\\\n",
 							"                                                , 'tripDistance', 'weekdayString', 'pickupHour','tripTimeSecs','tipped'\\\n",
@@ -1532,7 +1640,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Encoding\n",
 							"\n",
@@ -1546,7 +1653,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# The sample uses an algorithm that only works with numeric features convert them so they can be consumed\n",
 							"sI1 = StringIndexer(inputCol=\"trafficTimeBins\", outputCol=\"trafficTimeBinsIndex\"); \n",
@@ -1562,7 +1668,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Generation of Testing and Training Data Sets\n",
 							"Simple split, 70% for training and 30% for testing the model. Playing with this ratio may result in different models.\n",
@@ -1571,7 +1676,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Decide on the split between training and testing data from the dataframe \n",
 							"trainingFraction = 0.7\n",
@@ -1586,7 +1690,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Train the Model\n",
 							"\n",
@@ -1595,7 +1698,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"## Create a new LR object for the model\n",
 							"logReg = LogisticRegression(maxIter=10, regParam=0.3, labelCol = 'tipped')\n",
@@ -1623,7 +1725,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Evaluate and Visualize\n",
 							"\n",
@@ -1633,7 +1734,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"## Plot the ROC curve, no need for pandas as this uses the modelSummary object\n",
 							"modelSummary = lrModel.stages[-1].summary\n",
@@ -1653,6 +1753,31 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/ws1sparkpool1')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 40,
+					"minNodeCount": 3
+				},
+				"nodeCount": 5,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "2.4",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "southcentralus"
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/jhs2gt2acq3getmwpocws1p1')]",
 			"type": "Microsoft.Synapse/workspaces/sqlPools",
 			"apiVersion": "2019-06-01-preview",
@@ -1669,15 +1794,6 @@
 			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/ws1sparkpool1')]",
-			"type": "Microsoft.Synapse/workspaces/bigDataPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": []
-			},
 			"dependsOn": []
 		}
 	]
