@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 1",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP 20 QT.query_sql_text, SP.query_plan,\n\tRS.min_duration/1000000 as min_duration_sec, \n\tRS.avg_duration/1000000 as avg_duration_sec, \n\tRS.[max_duration]/1000000 as max_duration_sec,\n\tRS.min_tempdb_space_used * 8192 / 1024 / 1024 as min_tempdb_MB,\n\tRS.avg_tempdb_space_used * 8192 / 1024 / 1024 as avg_tempdb_MB,\n\tRS.max_tempdb_space_used * 8192 / 1024 / 1024 as max_tempdb_MB\nFROM sys.query_store_query SQ\nINNER JOIN sys.query_store_query_text QT \n\tON SQ.query_text_id = QT.query_text_id\nINNER JOIN sys.query_store_plan SP \n\tON SQ.query_id = SP.query_id\nINNER JOIN sys.query_store_runtime_stats RS \n\tON SP.plan_id = RS.plan_id\nORDER BY avg_duration DESC\n\nselect * from sys.query_context_settings\n\nSELECT current_storage_size_mb, max_storage_size_mb\nFROM sys.database_query_store_options;\n\nALTER DATABASE jhs2gt2acq3getmwpocws1p1\nSET QUERY_STORE (\n    OPERATION_MODE = READ_WRITE,\n    CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 30),\n    DATA_FLUSH_INTERVAL_SECONDS = 3000,\n    MAX_STORAGE_SIZE_MB = 500,\n    INTERVAL_LENGTH_MINUTES = 15,\n    SIZE_BASED_CLEANUP_MODE = AUTO,\n    QUERY_CAPTURE_MODE = AUTO,\n    MAX_PLANS_PER_QUERY = 1000,\n    WAIT_STATS_CAPTURE_MODE = ON\n);\n\nSELECT name, is_auto_create_stats_on\nFROM sys.databases\n\n-- Monitor active queries\nSELECT *\nFROM sys.dm_pdw_exec_requests\nWHERE status not in ('Completed','Failed','Cancelled')\n  AND session_id <> session_id()\nORDER BY submit_time DESC;\n\n-- Find top 10 queries longest running queries\nSELECT TOP 10 *\nFROM sys.dm_pdw_exec_requests\nORDER BY total_elapsed_time DESC;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

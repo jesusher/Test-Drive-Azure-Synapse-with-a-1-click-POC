@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 2",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [context_settings_id]\n,[set_options]\n,[language_id]\n,[date_format]\n,[date_first]\n,[status]\n,[required_cursor_options]\n,[acceptable_cursor_options]\n,[merge_action_type]\n,[default_schema_id]\n,[is_replication_specific]\n,[is_contained]\n FROM [sys].[query_context_settings]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

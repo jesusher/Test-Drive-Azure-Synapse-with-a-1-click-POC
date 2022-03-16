@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 5",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [runtime_stats_interval_id]\n,[start_time]\n,[end_time]\n,[comment]\n FROM [sys].[query_store_runtime_stats_interval]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

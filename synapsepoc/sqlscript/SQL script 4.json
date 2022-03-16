@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 4",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [runtime_stats_id]\n,[plan_id]\n,[runtime_stats_interval_id]\n,[execution_type]\n,[execution_type_desc]\n,[first_execution_time]\n,[last_execution_time]\n,[count_executions]\n,[avg_duration]\n,[last_duration]\n,[min_duration]\n,[max_duration]\n,[stdev_duration]\n,[avg_cpu_time]\n,[last_cpu_time]\n,[min_cpu_time]\n,[max_cpu_time]\n,[stdev_cpu_time]\n,[avg_logical_io_reads]\n,[last_logical_io_reads]\n,[min_logical_io_reads]\n,[max_logical_io_reads]\n,[stdev_logical_io_reads]\n,[avg_logical_io_writes]\n,[last_logical_io_writes]\n,[min_logical_io_writes]\n,[max_logical_io_writes]\n,[stdev_logical_io_writes]\n,[avg_physical_io_reads]\n,[last_physical_io_reads]\n,[min_physical_io_reads]\n,[max_physical_io_reads]\n,[stdev_physical_io_reads]\n,[avg_clr_time]\n,[last_clr_time]\n,[min_clr_time]\n,[max_clr_time]\n,[stdev_clr_time]\n,[avg_dop]\n,[last_dop]\n,[min_dop]\n,[max_dop]\n,[stdev_dop]\n,[avg_query_max_used_memory]\n,[last_query_max_used_memory]\n,[min_query_max_used_memory]\n,[max_query_max_used_memory]\n,[stdev_query_max_used_memory]\n,[avg_rowcount]\n,[last_rowcount]\n,[min_rowcount]\n,[max_rowcount]\n,[stdev_rowcount]\n,[avg_num_physical_io_reads]\n,[last_num_physical_io_reads]\n,[min_num_physical_io_reads]\n,[max_num_physical_io_reads]\n,[stdev_num_physical_io_reads]\n,[avg_log_bytes_used]\n,[last_log_bytes_used]\n,[min_log_bytes_used]\n,[max_log_bytes_used]\n,[stdev_log_bytes_used]\n,[avg_tempdb_space_used]\n,[last_tempdb_space_used]\n,[min_tempdb_space_used]\n,[max_tempdb_space_used]\n,[stdev_tempdb_space_used]\n,[avg_page_server_io_reads]\n,[last_page_server_io_reads]\n,[min_page_server_io_reads]\n,[max_page_server_io_reads]\n,[stdev_page_server_io_reads]\n FROM [sys].[query_store_runtime_stats]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

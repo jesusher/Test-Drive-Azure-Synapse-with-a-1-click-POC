@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 3",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [plan_id]\n,[query_id]\n,[plan_group_id]\n,[engine_version]\n,[compatibility_level]\n,[query_plan_hash]\n,[query_plan]\n,[is_online_index_plan]\n,[is_trivial_plan]\n,[is_parallel_plan]\n,[is_forced_plan]\n,[is_natively_compiled]\n,[force_failure_count]\n,[last_force_failure_reason]\n,[last_force_failure_reason_desc]\n,[count_compiles]\n,[initial_compile_start_time]\n,[last_compile_start_time]\n,[last_execution_time]\n,[avg_compile_duration]\n,[last_compile_duration]\n,[plan_forcing_type]\n,[plan_forcing_type_desc]\n FROM [sys].[query_store_plan]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

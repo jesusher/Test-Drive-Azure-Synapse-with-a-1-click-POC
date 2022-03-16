@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 6",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [query_id]\n,[query_text_id]\n,[context_settings_id]\n,[object_id]\n,[batch_sql_handle]\n,[query_hash]\n,[is_internal_query]\n,[query_parameterization_type]\n,[query_parameterization_type_desc]\n,[initial_compile_start_time]\n,[last_compile_start_time]\n,[last_execution_time]\n,[last_compile_batch_sql_handle]\n,[last_compile_batch_offset_start]\n,[last_compile_batch_offset_end]\n,[count_compiles]\n,[avg_compile_duration]\n,[last_compile_duration]\n,[avg_bind_duration]\n,[last_bind_duration]\n,[avg_bind_cpu_time]\n,[last_bind_cpu_time]\n,[avg_optimize_duration]\n,[last_optimize_duration]\n,[avg_optimize_cpu_time]\n,[last_optimize_cpu_time]\n,[avg_compile_memory_kb]\n,[last_compile_memory_kb]\n,[max_compile_memory_kb]\n,[is_clouddb_internal_query]\n FROM [sys].[query_store_query]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
