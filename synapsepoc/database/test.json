@@ -1,0 +1,22 @@
+{
+	"name": "test",
+	"properties": {
+		"Name": "test",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://dlsjhspocfs1@jhs2gt2acq3getmwpoc.dfs.core.windows.net/test",
+			"Properties": {
+				"FormatType": "csv",
+				"LinkedServiceName": "jhs2gt2acq3getmwpocws1-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
