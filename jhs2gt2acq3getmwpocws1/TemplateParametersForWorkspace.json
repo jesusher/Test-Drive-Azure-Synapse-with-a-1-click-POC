@@ -8,6 +8,9 @@
 		"AzureSynapseAnalytics1_connectionString": {
 			"value": ""
 		},
+		"AzureSynapseAnalytics2_connectionString": {
+			"value": ""
+		},
 		"TripFaresSynapseAnalyticsLinkedService_connectionString": {
 			"value": ""
 		},
