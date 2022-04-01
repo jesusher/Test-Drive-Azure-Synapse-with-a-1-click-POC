@@ -1,16 +1,15 @@
 {
 	"name": "AzureSynapseAnalytics2",
-	"type": "Microsoft.Synapse/workspaces/linkedservices",
 	"properties": {
 		"annotations": [],
 		"type": "AzureSqlDW",
 		"typeProperties": {
-			"connectionString": "integrated security=False;encrypt=True;connection timeout=30;data source=jhs2gt2acq3getmwpocws1.sql.azuresynapse.net;initial catalog=jhs2gt2acq3getmwpocws1p1;user id=sqladminuser",
-			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIlNZTkFQU0VAMDg0QTVEOEUtQ0I2OS00OTJFLUFDODYtM0VBQzcxNUIwMzlFX2QwNWYyZTVjLTUyMDQtNDdmMy04MzgxLWQ0NGZiZDY3ZDg2NiINCn0="
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=jhs2gt2acq3getmwpocws1.sql.azuresynapse.net;Initial Catalog=jhs2gt2acq3getmwpocws1p1"
 		},
 		"connectVia": {
 			"referenceName": "AutoResolveIntegrationRuntime",
 			"type": "IntegrationRuntimeReference"
 		}
-	}
+	},
+	"type": "Microsoft.Synapse/workspaces/linkedservices"
 }
