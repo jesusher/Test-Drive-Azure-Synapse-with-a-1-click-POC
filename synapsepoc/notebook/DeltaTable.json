@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "86ef0dca-a2fe-420f-ba45-08e9f6e9d3c4"
+				"spark.autotune.trackingId": "6ccebc3f-2fb5-4c7f-b2fa-2f0b3a67c470"
 			}
 		},
 		"metadata": {
@@ -72,7 +72,7 @@
 					"# Display dfUpdates\r\n",
 					"dfUpdates.show()"
 				],
-				"execution_count": 1
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
@@ -97,7 +97,7 @@
 					"#dfUpdates\r\n",
 					"dfUpdates.createOrReplaceTempView('Employee_Updates')"
 				],
-				"execution_count": 2
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
@@ -130,7 +130,7 @@
 					"-- specify data lake folder location\r\n",
 					"LOCATION '/DELTA_Employees/Employees/' "
 				],
-				"execution_count": 3
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -170,7 +170,7 @@
 					"WHEN NOT MATCHED THEN\r\n",
 					"  INSERT (Employee, Salary, BeginDate, EndDate, CurrentRecord) VALUES (s.Employee, s.Salary, CURRENT_DATE, '2999-12-31',1)"
 				],
-				"execution_count": 4
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -195,7 +195,7 @@
 					"FROM DELTA_Employees\r\n",
 					"ORDER BY Employee"
 				],
-				"execution_count": 5
+				"execution_count": 6
 			}
 		]
 	}
