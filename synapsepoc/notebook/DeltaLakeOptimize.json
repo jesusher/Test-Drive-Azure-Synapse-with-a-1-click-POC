@@ -3,6 +3,10 @@
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "spark31",
+			"type": "BigDataPoolReference"
+		},
 		"sessionProperties": {
 			"driverMemory": "28g",
 			"driverCores": 4,
@@ -13,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "a9332a70-133a-4f8a-8dff-950896ded904"
+				"spark.autotune.trackingId": "26c8cb0c-0149-452e-b913-9cb2969165f9"
 			}
 		},
 		"metadata": {
@@ -25,6 +29,21 @@
 			},
 			"language_info": {
 				"name": "scala"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/8af3f092-169b-4f76-8cb3-822bfc9a88db/resourceGroups/rg-1-click-poc/providers/Microsoft.Synapse/workspaces/jhs2gt2acq3getmwpocws1/bigDataPools/spark31",
+				"name": "spark31",
+				"type": "Spark",
+				"endpoint": "https://jhs2gt2acq3getmwpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark31",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.1",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
