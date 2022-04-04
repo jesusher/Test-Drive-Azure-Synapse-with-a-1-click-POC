@@ -1,0 +1,187 @@
+{
+	"name": "deltalake_autocompact_output",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "abc82394-6d89-41f3-808b-1c5e99344c17"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_spark",
+				"display_name": "scala"
+			},
+			"language_info": {
+				"name": "scala"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Delta Lake - Auto compaction"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": true
+				},
+				"source": [
+					"val sessionId = scala.util.Random.nextInt(1000000)\r\n",
+					"val dataPath = s\"/deltaautooptimizetest/data-$sessionId\";\r\n",
+					"\r\n",
+					"val numFiles = 100"
+				],
+				"execution_count": 23
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Auto compaction\r\n",
+					"\r\n",
+					"Auto compaction will automatically trigger OPTIMIZE operation after any update on the table.\r\n",
+					"\r\n",
+					"In order to reduce the overhead,\r\n",
+					"- use 128MB as `maxFileSize` (`spark.microsoft.delta.autoCompact.maxFileSize`, default: 128MB) \r\n",
+					"- triggered when there're more than 50 files in a directory. (`spark.microsoft.delta.autoCompact.minNumFiles`, default: 50)\r\n",
+					"- optimize small files up to the maximum bytes config (`spark.microsoft.delta.autoCompact.maxCompactBytes`, default: 50GB)"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"spark.conf.set(\"spark.microsoft.delta.autoCompact.enabled\", \"false\")\r\n",
+					"spark.range(500000).map { _ =>\r\n",
+					"    (scala.util.Random.nextInt(10000000).toLong, scala.util.Random.nextInt(1000000000), scala.util.Random.nextInt(2))\r\n",
+					"}.toDF(\"colA\", \"colB\", \"colC\").repartition(numFiles).write.mode(\"overwrite\").format(\"delta\").partitionBy(\"colC\").save(dataPath)\r\n",
+					"// 50M rows with random integers stored in numFiles * 2 parquet files in colC=0, colC=1 partition"
+				],
+				"execution_count": 24
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
+					"println(df.inputFiles.length) // The number of files is 100 * 2 = 200"
+				],
+				"execution_count": 25
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"// Enable auto compaction for all tables.\r\n",
+					"spark.conf.set(\"spark.microsoft.delta.autoCompact.enabled\", \"true\")"
+				],
+				"execution_count": 26
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"// Append 1 row to trigger auto compact\r\n",
+					"df.limit(1).write.mode(\"append\").format(\"delta\").save(dataPath)"
+				],
+				"execution_count": 27
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
+					"println(df.inputFiles.length) // The result should be 2 as there are 2 partitions."
+				],
+				"execution_count": 28
+			}
+		]
+	}
+}
