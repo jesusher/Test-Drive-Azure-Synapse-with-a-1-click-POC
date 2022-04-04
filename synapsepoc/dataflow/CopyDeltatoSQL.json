@@ -14,15 +14,18 @@
 			],
 			"sinks": [
 				{
-					"dataset": {
-						"referenceName": "AzureSynapseAnalyticsTable2",
-						"type": "DatasetReference"
+					"linkedService": {
+						"referenceName": "AzureSynapseAnalytics2",
+						"type": "LinkedServiceReference"
 					},
 					"name": "sink1"
 				}
 			],
 			"transformations": [],
 			"scriptLines": [
+				"parameters{",
+				"     adf_tablename as string",
+				"}",
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
@@ -31,19 +34,15 @@
 				"     folderPath: 'DELTA_Employees/Employees') ~> DeltaTable",
 				"DeltaTable sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     input(",
-				"          Employee as string,",
-				"          Salary as integer,",
-				"          BeginDate as date,",
-				"          EndDate as date,",
-				"          CurrentRecord as integer",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
 				"     format: 'table',",
-				"     staged: false,",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'dbo',",
+				"     tableName: ($adf_tablename),",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     staged: true,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"

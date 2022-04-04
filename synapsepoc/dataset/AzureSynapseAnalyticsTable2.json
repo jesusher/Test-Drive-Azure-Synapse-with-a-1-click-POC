@@ -5,6 +5,11 @@
 			"referenceName": "AzureSynapseAnalytics2",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"tablename": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "AzureSqlDWTable",
 		"schema": [
@@ -33,7 +38,10 @@
 		],
 		"typeProperties": {
 			"schema": "dbo",
-			"table": "DELTA_Employees"
+			"table": {
+				"value": "@dataset().tablename",
+				"type": "Expression"
+			}
 		}
 	}
 }

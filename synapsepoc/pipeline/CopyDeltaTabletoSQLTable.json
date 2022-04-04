@@ -17,7 +17,20 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "CopyDeltatoSQL",
-						"type": "DataFlowReference"
+						"type": "DataFlowReference",
+						"parameters": {
+							"adf_tablename": {
+								"value": "'@{pipeline().parameters.tablename}'",
+								"type": "Expression"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "linkedService1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "adfstagedpolybasetempdata"
 					},
 					"compute": {
 						"coreCount": 8,
@@ -27,6 +40,11 @@
 				}
 			}
 		],
+		"parameters": {
+			"tablename": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
