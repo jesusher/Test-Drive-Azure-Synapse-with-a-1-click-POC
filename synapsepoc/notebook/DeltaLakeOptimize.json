@@ -17,15 +17,15 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "caac3d87-b7c6-461f-84d4-4b364b98c756"
+				"spark.autotune.trackingId": "b1a459b1-ba02-424d-97c2-2e295697919f"
 			}
 		},
 		"metadata": {
 			"saveOutput": true,
 			"enableDebugMode": false,
 			"kernelspec": {
-				"name": "synapse_spark",
-				"display_name": "scala"
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "scala"
@@ -81,7 +81,7 @@
 					"\r\n",
 					"val numFiles = 1000"
 				],
-				"execution_count": 2
+				"execution_count": 1
 			},
 			{
 				"cell_type": "markdown",
@@ -117,7 +117,7 @@
 					"\r\n",
 					"// 50M rows with random integers stored in numFiles * 2 parquet files in colC=0, colC=1 partition"
 				],
-				"execution_count": 3
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
@@ -136,7 +136,7 @@
 					"// spark.conf.get(\"spark.databricks.delta.optimize.maxFileSize\")\r\n",
 					"spark.conf.get(\"spark.executor.instances\")"
 				],
-				"execution_count": 4
+				"execution_count": 3
 			},
 			{
 				"cell_type": "markdown",
@@ -177,7 +177,7 @@
 				"source": [
 					"print(spark.conf.get(\"spark.databricks.delta.optimize.maxFileSize\"))"
 				],
-				"execution_count": 5
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -188,7 +188,7 @@
 					"dt.optimize(\"colC = 1\").show\r\n",
 					"// optimize API returns statistics in Dataframe"
 				],
-				"execution_count": 6
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -207,7 +207,7 @@
 					"// optimize all files\r\n",
 					"dt.optimize().show"
 				],
-				"execution_count": 7
+				"execution_count": 6
 			},
 			{
 				"cell_type": "markdown",
@@ -402,13 +402,13 @@
 				"source": [
 					"%%pyspark\r\n",
 					"from delta.tables import *\r\n",
-					"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-246486')\r\n",
+					"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-108024')\r\n",
 					"display(dt.optimize(condition = \"colC = 1\"))\r\n",
 					"\r\n",
 					"# display(dt.optimize(condition = \"colC = 1\", zOrderBy = \"colA\"))\r\n",
 					"# help(dt.optimize)"
 				],
-				"execution_count": null
+				"execution_count": 14
 			},
 			{
 				"cell_type": "code",
@@ -426,7 +426,7 @@
 				"source": [
 					"spark.sql(s\"CREATE TABLE sampledata USING DELTA LOCATION '$dataPath'\")"
 				],
-				"execution_count": null
+				"execution_count": 15
 			},
 			{
 				"cell_type": "code",
@@ -449,7 +449,7 @@
 					"%%sql\r\n",
 					"OPTIMIZE sampledata ZORDER BY (ColA)"
 				],
-				"execution_count": null
+				"execution_count": 16
 			},
 			{
 				"cell_type": "code",
