@@ -3,6 +3,10 @@
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "spark31",
+			"type": "BigDataPoolReference"
+		},
 		"sessionProperties": {
 			"driverMemory": "28g",
 			"driverCores": 4,
@@ -13,18 +17,33 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "abc82394-6d89-41f3-808b-1c5e99344c17"
+				"spark.autotune.trackingId": "58a4ca25-d100-4210-82a9-84297fc27fc4"
 			}
 		},
 		"metadata": {
 			"saveOutput": true,
 			"enableDebugMode": false,
 			"kernelspec": {
-				"name": "synapse_spark",
-				"display_name": "scala"
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "scala"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/8af3f092-169b-4f76-8cb3-822bfc9a88db/resourceGroups/rg-1-click-poc/providers/Microsoft.Synapse/workspaces/jhs2gt2acq3getmwpocws1/bigDataPools/spark31",
+				"name": "spark31",
+				"type": "Spark",
+				"endpoint": "https://jhs2gt2acq3getmwpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark31",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.1",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
@@ -62,7 +81,7 @@
 					"\r\n",
 					"val numFiles = 100"
 				],
-				"execution_count": 23
+				"execution_count": 1
 			},
 			{
 				"cell_type": "markdown",
@@ -104,7 +123,7 @@
 					"}.toDF(\"colA\", \"colB\", \"colC\").repartition(numFiles).write.mode(\"overwrite\").format(\"delta\").partitionBy(\"colC\").save(dataPath)\r\n",
 					"// 50M rows with random integers stored in numFiles * 2 parquet files in colC=0, colC=1 partition"
 				],
-				"execution_count": 24
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
@@ -123,7 +142,7 @@
 					"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
 					"println(df.inputFiles.length) // The number of files is 100 * 2 = 200"
 				],
-				"execution_count": 25
+				"execution_count": 3
 			},
 			{
 				"cell_type": "code",
@@ -142,7 +161,7 @@
 					"// Enable auto compaction for all tables.\r\n",
 					"spark.conf.set(\"spark.microsoft.delta.autoCompact.enabled\", \"true\")"
 				],
-				"execution_count": 26
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -161,7 +180,7 @@
 					"// Append 1 row to trigger auto compact\r\n",
 					"df.limit(1).write.mode(\"append\").format(\"delta\").save(dataPath)"
 				],
-				"execution_count": 27
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -180,7 +199,7 @@
 					"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
 					"println(df.inputFiles.length) // The result should be 2 as there are 2 partitions."
 				],
-				"execution_count": 28
+				"execution_count": 6
 			}
 		]
 	}
