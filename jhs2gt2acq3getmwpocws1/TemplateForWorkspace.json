@@ -57,15 +57,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/spark31')]",
-			"type": "Microsoft.Synapse/workspaces/bigDataPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/CopyDeltaTabletoSQLTable')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
@@ -87,13 +78,24 @@
 							"dataflow": {
 								"referenceName": "CopyDeltatoSQL",
 								"type": "DataFlowReference",
-								"parameters": {},
+								"parameters": {
+									"adf_tablename": {
+										"value": "'@{pipeline().parameters.tablename}'",
+										"type": "Expression"
+									}
+								},
 								"datasetParameters": {
 									"DeltaTable": {},
 									"sink1": {}
 								}
 							},
-							"staging": {},
+							"staging": {
+								"linkedService": {
+									"referenceName": "linkedService1",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "adfstagedpolybasetempdata"
+							},
 							"compute": {
 								"coreCount": 8,
 								"computeType": "General"
@@ -106,10 +108,16 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/CopyDeltatoSQL')]"
+				"[concat(variables('workspaceId'), '/dataflows/CopyDeltatoSQL')]",
+				"[concat(variables('workspaceId'), '/linkedServices/linkedService1')]"
 			]
 		},
 		{
@@ -706,6 +714,11 @@
 					"referenceName": "AzureSynapseAnalytics2",
 					"type": "LinkedServiceReference"
 				},
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
 				"annotations": [],
 				"type": "AzureSqlDWTable",
 				"schema": [
@@ -734,7 +747,10 @@
 				],
 				"typeProperties": {
 					"schema": "dbo",
-					"table": "DELTA_Employees"
+					"table": {
+						"value": "@dataset().tablename",
+						"type": "Expression"
+					}
 				}
 			},
 			"dependsOn": [
@@ -1530,15 +1546,18 @@
 					],
 					"sinks": [
 						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsTable2",
-								"type": "DatasetReference"
+							"linkedService": {
+								"referenceName": "AzureSynapseAnalytics2",
+								"type": "LinkedServiceReference"
 							},
 							"name": "sink1"
 						}
 					],
 					"transformations": [],
 					"scriptLines": [
+						"parameters{",
+						"     adf_tablename as string",
+						"}",
 						"source(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     ignoreNoFilesFound: false,",
@@ -1547,19 +1566,15 @@
 						"     folderPath: 'DELTA_Employees/Employees') ~> DeltaTable",
 						"DeltaTable sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     input(",
-						"          Employee as string,",
-						"          Salary as integer,",
-						"          BeginDate as date,",
-						"          EndDate as date,",
-						"          CurrentRecord as integer",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
 						"     format: 'table',",
-						"     staged: false,",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'dbo',",
+						"     tableName: ($adf_tablename),",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     staged: true,",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
@@ -1568,7 +1583,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/linkedService1')]",
-				"[concat(variables('workspaceId'), '/datasets/AzureSynapseAnalyticsTable2')]"
+				"[concat(variables('workspaceId'), '/linkedServices/AzureSynapseAnalytics2')]"
 			]
 		},
 		{
@@ -1765,6 +1780,46 @@
 					},
 					"currentConnection": {
 						"databaseName": "default",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 8')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [Employee]\n,[Salary]\n,[BeginDate]\n,[EndDate]\n,[CurrentRecord]\n FROM [dbo].[DELTA_Employees]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 9')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://jhs2gt2acq3getmwpoc.dfs.core.windows.net/dlsjhspocfs1/DELTA_Employees/Employees/',\n        FORMAT = 'DELTA'\n    ) AS [result]\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
@@ -2110,6 +2165,497 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/DeltaLakeOptimize')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "spark31",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "b1a459b1-ba02-424d-97c2-2e295697919f"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/8af3f092-169b-4f76-8cb3-822bfc9a88db/resourceGroups/rg-1-click-poc/providers/Microsoft.Synapse/workspaces/jhs2gt2acq3getmwpocws1/bigDataPools/spark31",
+						"name": "spark31",
+						"type": "Spark",
+						"endpoint": "https://jhs2gt2acq3getmwpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark31",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 15
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Delta Lake OPTIMIZE"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"val sessionId = scala.util.Random.nextInt(1000000)\r\n",
+							"val dataPath = s\"/deltaoptimizetest/data-$sessionId\";\r\n",
+							"\r\n",
+							"val numFiles = 1000"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Data preparation"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"spark.range(50000000).map { _ =>\r\n",
+							"    (scala.util.Random.nextInt(10000000).toLong, scala.util.Random.nextInt(1000000000), scala.util.Random.nextInt(2))\r\n",
+							"}.toDF(\"colA\", \"colB\", \"colC\").repartition(numFiles).write.mode(\"overwrite\").format(\"delta\").partitionBy(\"colC\").save(dataPath)\r\n",
+							"\r\n",
+							"// 50M rows with random integers stored in numFiles * 2 parquet files in colC=0, colC=1 partition"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"// spark.conf.get(\"spark.databricks.delta.optimize.maxFileSize\")\r\n",
+							"spark.conf.get(\"spark.executor.instances\")"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Optimize dataset\r\n",
+							"\r\n",
+							"Optimize will compact small target files into larger files.\r\n",
+							"Target files are\r\n",
+							"- smaller than `spark.databricks.delta.optimize.maxFileSize` (default 1GB) AND\r\n",
+							"- under the corresponding partitions if partition filter condition is specified.\r\n",
+							"\r\n",
+							"Optimize won't optimize the target files if\r\n",
+							"- only one file in the partition\r\n",
+							"- no candidate for compaction e.g. 2 files of 700MB & maxFileSize=1GB\r\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"print(spark.conf.get(\"spark.databricks.delta.optimize.maxFileSize\"))"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"val dt = io.delta.tables.DeltaTable.forPath(dataPath)\r\n",
+							"\r\n",
+							"// optimize API supports filter condition for partitioned columns. Below will optimize the files under \"colC=1\" only.\r\n",
+							"dt.optimize(\"colC = 1\").show\r\n",
+							"// optimize API returns statistics in Dataframe"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"// optimize all files\r\n",
+							"dt.optimize().show"
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Check performance without optimize"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"def measure(f : => Unit) {\r\n",
+							"    val start = System.nanoTime\r\n",
+							"    f\r\n",
+							"    val durationInMS = (System.nanoTime - start) / 1000 / 1000\r\n",
+							"    println(\"duration(ms): \" + durationInMS )\r\n",
+							"}"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Use version 0 for non-optimized data\r\n",
+							"val df = spark.read.format(\"delta\").option(\"versionAsOf\", \"0\").load(dataPath)\r\n",
+							"val agg = df.agg(avg(\"colA\"))\r\n",
+							"measure(println(agg.collect))"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Check performance after optimize"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Use the latest version for optimized data\r\n",
+							"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
+							"val agg = df.agg(avg(\"colA\"))\r\n",
+							"measure(println(agg.collect))"
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Spark SQL support\r\n",
+							"\r\n",
+							"Note: partition filter condition does not support in Spark SQL yet."
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"// This won't optimize anything since the table is already optimized.\r\n",
+							"spark.sql(s\"OPTIMIZE delta.`$dataPath`\").show"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### zOrder - Example"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.sql(s\"OPTIMIZE delta.`$dataPath` ZORDER BY (ColA)\").show"
+						],
+						"outputs": [],
+						"execution_count": 12
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Temp Area"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "python"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%pyspark\r\n",
+							"from delta.tables import *\r\n",
+							"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-108024')\r\n",
+							"display(dt.optimize(condition = \"colC = 1\"))\r\n",
+							"\r\n",
+							"# display(dt.optimize(condition = \"colC = 1\", zOrderBy = \"colA\"))\r\n",
+							"# help(dt.optimize)"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.sql(s\"CREATE TABLE sampledata USING DELTA LOCATION '$dataPath'\")"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"OPTIMIZE sampledata ZORDER BY (ColA)"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/DeltaTable')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
@@ -2155,15 +2701,13 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Define column headers\r\n",
 							"columns = [\"Employee\",\"Salary\"]\r\n",
@@ -2312,6 +2856,221 @@
 							"SELECT *\r\n",
 							"FROM DELTA_Employees\r\n",
 							"ORDER BY Employee"
+						],
+						"outputs": [],
+						"execution_count": 6
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/deltalake_autocompact_output')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "spark31",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "e1e1fee8-33fb-4fea-a680-1859b19be4b9"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/8af3f092-169b-4f76-8cb3-822bfc9a88db/resourceGroups/rg-1-click-poc/providers/Microsoft.Synapse/workspaces/jhs2gt2acq3getmwpocws1/bigDataPools/spark31",
+						"name": "spark31",
+						"type": "Spark",
+						"endpoint": "https://jhs2gt2acq3getmwpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark31",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Delta Lake - Auto compaction"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"val sessionId = scala.util.Random.nextInt(1000000)\r\n",
+							"val dataPath = s\"/deltaautooptimizetest/data-$sessionId\";\r\n",
+							"\r\n",
+							"val numFiles = 100"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Auto compaction\r\n",
+							"\r\n",
+							"Auto compaction will automatically trigger OPTIMIZE operation after any update on the table.\r\n",
+							"\r\n",
+							"In order to reduce the overhead,\r\n",
+							"- use 128MB as `maxFileSize` (`spark.microsoft.delta.autoCompact.maxFileSize`, default: 128MB) \r\n",
+							"- triggered when there're more than 50 files in a directory. (`spark.microsoft.delta.autoCompact.minNumFiles`, default: 50)\r\n",
+							"- optimize small files up to the maximum bytes config (`spark.microsoft.delta.autoCompact.maxCompactBytes`, default: 50GB)"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.conf.set(\"spark.microsoft.delta.autoCompact.enabled\", \"false\")\r\n",
+							"spark.range(500000).map { _ =>\r\n",
+							"    (scala.util.Random.nextInt(10000000).toLong, scala.util.Random.nextInt(1000000000), scala.util.Random.nextInt(2))\r\n",
+							"}.toDF(\"colA\", \"colB\", \"colC\").repartition(numFiles).write.mode(\"overwrite\").format(\"delta\").partitionBy(\"colC\").save(dataPath)\r\n",
+							"// 50M rows with random integers stored in numFiles * 2 parquet files in colC=0, colC=1 partition"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
+							"println(df.inputFiles.length) // The number of files is 100 * 2 = 200"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"// Enable auto compaction for all tables.\r\n",
+							"spark.conf.set(\"spark.microsoft.delta.autoCompact.enabled\", \"true\")"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"// Append 1 row to trigger auto compact\r\n",
+							"df.limit(1).write.mode(\"append\").format(\"delta\").save(dataPath)"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
+							"println(df.inputFiles.length) // The result should be 2 as there are 2 partitions."
 						],
 						"outputs": [],
 						"execution_count": 6
@@ -2592,7 +3351,7 @@
 			"properties": {
 				"autoPause": {
 					"enabled": true,
-					"delayInMinutes": 15
+					"delayInMinutes": 5
 				},
 				"autoScale": {
 					"enabled": true,
