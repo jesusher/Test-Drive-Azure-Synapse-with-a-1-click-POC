@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "b1a459b1-ba02-424d-97c2-2e295697919f"
+				"spark.autotune.trackingId": "bb502295-5ff8-4564-9d1e-e7051edef879"
 			}
 		},
 		"metadata": {
@@ -188,7 +188,7 @@
 					"dt.optimize(\"colC = 1\").show\r\n",
 					"// optimize API returns statistics in Dataframe"
 				],
-				"execution_count": 5
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -207,7 +207,7 @@
 					"// optimize all files\r\n",
 					"dt.optimize().show"
 				],
-				"execution_count": 6
+				"execution_count": 5
 			},
 			{
 				"cell_type": "markdown",
@@ -244,7 +244,7 @@
 					"    println(\"duration(ms): \" + durationInMS )\r\n",
 					"}"
 				],
-				"execution_count": 8
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
@@ -266,7 +266,7 @@
 					"val agg = df.agg(avg(\"colA\"))\r\n",
 					"measure(println(agg.collect))"
 				],
-				"execution_count": 9
+				"execution_count": 7
 			},
 			{
 				"cell_type": "markdown",
@@ -301,7 +301,7 @@
 					"val agg = df.agg(avg(\"colA\"))\r\n",
 					"measure(println(agg.collect))"
 				],
-				"execution_count": 10
+				"execution_count": 8
 			},
 			{
 				"cell_type": "markdown",
@@ -336,7 +336,7 @@
 					"// This won't optimize anything since the table is already optimized.\r\n",
 					"spark.sql(s\"OPTIMIZE delta.`$dataPath`\").show"
 				],
-				"execution_count": 11
+				"execution_count": 9
 			},
 			{
 				"cell_type": "markdown",
@@ -367,7 +367,7 @@
 				"source": [
 					"spark.sql(s\"OPTIMIZE delta.`$dataPath` ZORDER BY (ColA)\").show"
 				],
-				"execution_count": 12
+				"execution_count": 10
 			},
 			{
 				"cell_type": "markdown",
@@ -402,7 +402,7 @@
 				"source": [
 					"%%pyspark\r\n",
 					"from delta.tables import *\r\n",
-					"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-108024')\r\n",
+					"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-550226')\r\n",
 					"display(dt.optimize(condition = \"colC = 1\"))\r\n",
 					"\r\n",
 					"# display(dt.optimize(condition = \"colC = 1\", zOrderBy = \"colA\"))\r\n",
