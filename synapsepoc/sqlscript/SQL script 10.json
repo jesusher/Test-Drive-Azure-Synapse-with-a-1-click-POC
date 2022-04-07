@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 10",
+	"properties": {
+		"content": {
+			"query": "DROP TABLE IF EXISTS dbo.Student1;\n\nCREATE TABLE Student\n(\n   [Name]     VARCHAR(50)\n  ,[Maths]    INT\n  ,[Science]  INT\n  ,[English]  INT\n);\n    \nINSERT INTO Student\nVALUES\n    ('Atul', 'Atul2',     90, 91, 80, 81, 70, 71);\nINSERT INTO Student\nVALUES\n    ('Vishal','Vishal2',  80, 81, 90, 91, 60, 61);\nINSERT INTO Student\nVALUES\n    ('Shailesh', 'Shailesh2', 95, 96, 85, 86, 99, 100);\nGO\n\nSELECT * FROM Student; \n\n\nSELECT Name1, case when Indicador= 'Maths1'then 1\n                when Indicador='Science1' then 2\n                else 3\n                END as Indicador, Valor1 \nFROM   \n    (SELECT Name1, Maths1,  Science1, English1 FROM Student) p\nUNPIVOT\n(\n  Valor1\n  FOR Indicador in (Maths1, Science1, English1)\n) Upt\n;\n\nSELECT Name1, Name2, Indicador, Valor1, Valor2\nfrom Student\n    cross APPLY (VALUES(Maths1, '1', Maths2, '1'),\n                        (Science1, '2',Science2 '2'),\n                        (English1, '3', English2 '3')\n                        ) unpt (Valor1, Valor2, Indicador);\n\nSELECT s.Name1, s.Name2, unpt.Indicador, unpt.Valor1 \nfrom Student as s\n    cross APPLY (values(s.Maths1, '1'),\n                        (s.Science1, '2'),\n                        (s.English1, '3'))\n                         unpt (Valor1, Indicador);\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
