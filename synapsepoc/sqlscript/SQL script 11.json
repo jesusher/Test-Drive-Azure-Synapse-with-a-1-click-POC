@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 11",
+	"properties": {
+		"content": {
+			"query": "DROP TABLE [dbo].[Student]\nGO\n\nSET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[Student]\n( \n\t[Name1] [varchar](50)  NULL,\n\t[Name2] [varchar](50)  NULL,\n\t[Maths1] [int]  NULL,\n\t[Maths2] [int]  NULL,\n\t[Science1] [int]  NULL,\n\t[Science2] [int]  NULL,\n\t[English1] [int]  NULL,\n\t[English2] [int]  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tCLUSTERED COLUMNSTORE INDEX\n)\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhs2gt2acq3getmwpocws1p1",
+				"poolName": "jhs2gt2acq3getmwpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
