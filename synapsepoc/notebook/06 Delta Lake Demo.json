@@ -1,0 +1,323 @@
+{
+	"name": "06 Delta Lake Demo",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "spark31",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "bb730b53-116c-4600-8e2f-52d8376b6dcb"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/8af3f092-169b-4f76-8cb3-822bfc9a88db/resourceGroups/rg-1-click-poc/providers/Microsoft.Synapse/workspaces/jhs2gt2acq3getmwpocws1/bigDataPools/spark31",
+				"name": "spark31",
+				"type": "Spark",
+				"endpoint": "https://jhs2gt2acq3getmwpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark31",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.1",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"source": [
+					"# Using Linux foundation Delta Lake in Synapse Spark\n",
+					"In this notebook, how to read the delta table, how to write to delta table and timetravel is demonstrated"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Set the strorage path info\n",
+					"account_name = 'jhs2gt2acq3getmwpoc' # fill in your primary storage account name\n",
+					"container_name = 'dlsjhspocfs1' # fill in your container name\n",
+					"relative_csv_path = 'source' # fill in your relative CSV folder path\n",
+					"relative_delta_path='DELTA_HRData' # fill in your relative delta lake folder path\n",
+					"\n",
+					"adls_path = 'abfss://%s@%s.dfs.core.windows.net/' % (container_name, account_name)\n",
+					"print('Primary storage account path: ' + adls_path)\n",
+					"\n",
+					"#csv input file path\n",
+					"csvfilepath = adls_path + relative_csv_path + '/00 HRData.csv'\n",
+					"print ('CSV file path: '+ csvfilepath)\n",
+					"\n",
+					"# Delta Lake relative path\n",
+					"deltatablepath = adls_path + relative_delta_path + '/'\n",
+					"print('Delta Lake path: ' + deltatablepath)"
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Read data in csv format\n",
+					"\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
+					"csvhrdatadf.show(10)"
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Write data in delta format\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
+					"df_hr.show(10)"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from pyspark.sql import functions as F\r\n",
+					"\r\n",
+					"dfWithDate =  F.to_date(F.to_timestamp(col(\"YearsOfService\"), \"M/d/yyyy H:mm\"))\r\n",
+					"\r\n",
+					"dfWithDate.show()"
+				],
+				"execution_count": 10
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Add New Column YearsOfService\n",
+					"\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"import pyspark.sql.functions as f\n",
+					"\n",
+					"df_hr_service = df_hr.withColumn('YearsOfService',2020-f.year(f.to_timestamp('DateofHire', 'MM/dd/yyyy H:mm')))\n",
+					"df_hr_service.show(5)"
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Overwrite the entire delta table\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_hr_service.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").option(\"mergeSchema\", True).save(deltatablepath)"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Validate delta table is updated with new column\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"hrdataframe = spark.read.format(\"delta\").load(deltatablepath)\n",
+					"hrdataframe.show(10)"
+				],
+				"execution_count": 26
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Check version with timetravel\n",
+					"\n",
+					"we can see here yearsOfService column is not present in original delta table"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"hrdataoriginal = (spark\n",
+					"                    .read\n",
+					"                    .format(\"delta\")\n",
+					"                    .option(\"versionAsOf\",0)\n",
+					"                    .load(deltatablepath)\n",
+					"                    )\n",
+					"hrdataoriginal.show(10)"
+				],
+				"execution_count": 27
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Update records that match the given condition \n",
+					"Lets update here PayRate for employees whose payroll is less than 20 to make it lowest payrate value above 20.\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql.functions import *\n",
+					"from delta.tables import *\n",
+					"\n",
+					"deltaTable = DeltaTable.forPath(spark,deltatablepath)\n",
+					"\n",
+					"minPayRateAbove20 = hrdataframe.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\n",
+					"\n",
+					"#Number of records that will be updated\n",
+					"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()\n",
+					""
+				],
+				"execution_count": 28
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# Update PayRate to 20.5 for employees whose PayRate is below 20 \n",
+					"deltaTable.update(\n",
+					"    condition = (col(\"PayRate\")<minPayRateAbove20),\n",
+					"    set = {\"PayRate\":minPayRateAbove20}\n",
+					")\n",
+					"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).show()"
+				],
+				"execution_count": 40
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Validate changes by filtering records on condition\n",
+					"Validate no employees have PayRate less than or equal to 20\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
+					"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
+				],
+				"execution_count": 41
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"## Audit data changes\n",
+					"or Check Version history\n",
+					""
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"#get version history\n",
+					"deltaTable.history().show()"
+				],
+				"execution_count": 42
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"deltaTable.history(1).show()"
+				],
+				"execution_count": 44
+			},
+			{
+				"cell_type": "markdown",
+				"source": [
+					"### Undo changes for DeltaTable by restoring previous version\n",
+					"Lets set the PayRate as it was in previous version "
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"#Get verison 0 details\n",
+					"hrdataversion0 = spark\\\n",
+					"                        .read\\\n",
+					"                        .format(\"delta\")\\\n",
+					"                        .option(\"versionAsOF\",0)\\\n",
+					"                        .load(deltatablepath)\n",
+					"print(\"HR Dataframe as of version 0: \")\n",
+					"hrdataversion0.show(10)\n",
+					"\n",
+					"print(\"In version 0 count of employees who have PayRate less than or equal to 20 are:%d\" % hrdataversion0.filter(col(\"PayRate\")<minPayRateAbove20).count())\n",
+					"\n",
+					"# Revert changes\n",
+					"hrdataversion0.write.format(\"delta\").mode(\"overwrite\").partitionBy(\"Department\").save(deltatablepath)\n",
+					"\n",
+					"#read data and check count of employees again\n",
+					"finalversion = spark.read.format(\"delta\").load(deltatablepath)\n",
+					"print(\"In latest version count of employees who have PayRate less than or equal to 20 are: %d\" % finalversion.filter(col(\"PayRate\")<minPayRateAbove20).count())\n",
+					"finalversion.show(10)"
+				],
+				"execution_count": 46
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
