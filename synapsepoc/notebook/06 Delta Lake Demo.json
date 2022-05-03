@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "bb730b53-116c-4600-8e2f-52d8376b6dcb"
+				"spark.autotune.trackingId": "7224c44d-3741-40a1-b61d-0933e8f99a10"
 			}
 		},
 		"metadata": {
@@ -75,7 +75,7 @@
 					"deltatablepath = adls_path + relative_delta_path + '/'\n",
 					"print('Delta Lake path: ' + deltatablepath)"
 				],
-				"execution_count": 2
+				"execution_count": 12
 			},
 			{
 				"cell_type": "markdown",
@@ -91,7 +91,7 @@
 					"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
 					"csvhrdatadf.show(10)"
 				],
-				"execution_count": 3
+				"execution_count": 13
 			},
 			{
 				"cell_type": "markdown",
@@ -105,7 +105,7 @@
 				"source": [
 					"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
 				],
-				"execution_count": 4
+				"execution_count": 14
 			},
 			{
 				"cell_type": "code",
@@ -113,7 +113,7 @@
 					"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
 					"df_hr.show(10)"
 				],
-				"execution_count": 5
+				"execution_count": 15
 			},
 			{
 				"cell_type": "code",
@@ -203,7 +203,7 @@
 					"                    )\n",
 					"hrdataoriginal.show(10)"
 				],
-				"execution_count": 27
+				"execution_count": 16
 			},
 			{
 				"cell_type": "markdown",
@@ -221,13 +221,39 @@
 					"\n",
 					"deltaTable = DeltaTable.forPath(spark,deltatablepath)\n",
 					"\n",
-					"minPayRateAbove20 = hrdataframe.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\n",
+					"minPayRateAbove20 = hrdataoriginal.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\n",
 					"\n",
 					"#Number of records that will be updated\n",
 					"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()\n",
 					""
 				],
-				"execution_count": 28
+				"execution_count": 18
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from pyspark.sql.functions import *\r\n",
+					"from delta.tables import *\r\n",
+					"\r\n",
+					"deltaTable = DeltaTable.forPath(spark,deltatablepath)\r\n",
+					"\r\n",
+					"minPayRateAbove20 = hrdataframe.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\r\n",
+					"\r\n",
+					"#Number of records that will be updated\r\n",
+					"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
+				],
+				"execution_count": null
 			},
 			{
 				"cell_type": "code",
@@ -239,7 +265,7 @@
 					")\n",
 					"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).show()"
 				],
-				"execution_count": 40
+				"execution_count": 19
 			},
 			{
 				"cell_type": "markdown",
@@ -255,7 +281,7 @@
 					"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
 					"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
 				],
-				"execution_count": 41
+				"execution_count": 20
 			},
 			{
 				"cell_type": "markdown",
@@ -271,14 +297,14 @@
 					"#get version history\n",
 					"deltaTable.history().show()"
 				],
-				"execution_count": 42
+				"execution_count": 21
 			},
 			{
 				"cell_type": "code",
 				"source": [
 					"deltaTable.history(1).show()"
 				],
-				"execution_count": 44
+				"execution_count": 22
 			},
 			{
 				"cell_type": "markdown",
@@ -313,10 +339,38 @@
 			},
 			{
 				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
 				"source": [
-					""
+					"display(spark.sql(\"SELECT * FROM delta.`{}` LIMIT 5\".format(deltatablepath)))"
 				],
-				"execution_count": null
+				"execution_count": 23
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"spark.sql(\"\"\"\r\n",
+					"  DROP TABLE IF EXISTS hr_delta\r\n",
+					"\"\"\")\r\n",
+					"spark.sql(\"\"\"\r\n",
+					"  CREATE TABLE hr_delta\r\n",
+					"  USING DELTA\r\n",
+					"  LOCATION '{}'\r\n",
+					"\"\"\".format(deltatablepath))"
+				],
+				"execution_count": 24
 			}
 		]
 	}
