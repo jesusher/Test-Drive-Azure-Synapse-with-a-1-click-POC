@@ -1,5 +1,5 @@
 {
-	"name": "06 Delta Lake Demo_Copy1",
+	"name": "06 Delta Lake Demo Full",
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "17a89d03-6633-4092-924f-50d300215b45"
+				"spark.autotune.trackingId": "152a00bc-e72f-418e-8742-788e1dee4651"
 			}
 		},
 		"metadata": {
