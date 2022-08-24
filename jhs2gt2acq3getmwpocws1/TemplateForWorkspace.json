@@ -7,6 +7,10 @@
 			"metadata": "Workspace name",
 			"defaultValue": "jhs2gt2acq3getmwpocws1"
 		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
+		},
 		"AzureSynapseAnalytics1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalytics1'"
@@ -1229,6 +1233,25 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/AzureSynapseAnalytics1')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
@@ -1468,12 +1491,12 @@
 					}
 				},
 				"connectVia": {
-					"referenceName": "AutoResolveIntegrationRuntime",
+					"referenceName": "IntegrationRuntime1",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+				"[concat(variables('workspaceId'), '/integrationRuntimes/IntegrationRuntime1')]"
 			]
 		},
 		{
@@ -1490,6 +1513,9 @@
 							"coreCount": 8,
 							"timeToLive": 0,
 							"cleanup": true
+						},
+						"pipelineExternalComputeScaleProperties": {
+							"timeToLive": 60
 						}
 					}
 				},
@@ -1629,7 +1655,7 @@
 							"name": "InnerJoinWithTripFares"
 						}
 					],
-					"script": "source(output(\n\t\tmedallion as string,\n\t\thack_license as string,\n\t\tvendor_id as string,\n\t\trate_code as string,\n\t\tstore_and_fwd_flag as string,\n\t\tpickup_datetime as string,\n\t\tdropoff_datetime as string,\n\t\tpassenger_count as string,\n\t\ttrip_time_in_secs as string,\n\t\ttrip_distance as string,\n\t\tpickup_longitude as string,\n\t\tpickup_latitude as string,\n\t\tdropoff_longitude as string,\n\t\tdropoff_latitude as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> TripDataCSV\nsource(output(\n\t\tmedallion as string,\n\t\thack_license as string,\n\t\tvendor_id as string,\n\t\tpickup_datetime as string,\n\t\tpayment_type as string,\n\t\tfare_amount as string,\n\t\tsurcharge as string,\n\t\tmta_tax as string,\n\t\ttip_amount as string,\n\t\ttolls_amount as string,\n\t\ttotal_amount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> FaresDataCSV\nInnerJoinWithTripFares aggregate(groupBy(payment_type),\n\taverage_fare = avg(toInteger(total_amount)),\n\t\ttotal_trip_distance = sum(toInteger(trip_distance))) ~> AggregateByPaymentType\nTripDataCSV, FaresDataCSV join(TripDataCSV@medallion == FaresDataCSV@medallion\n\t&& TripDataCSV@hack_license == FaresDataCSV@hack_license\n\t&& TripDataCSV@vendor_id == FaresDataCSV@vendor_id\n\t&& TripDataCSV@pickup_datetime == FaresDataCSV@pickup_datetime,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> InnerJoinWithTripFares\nAggregateByPaymentType sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SynapseAnalyticsSink"
+					"script": "source(output(\n\t\tmedallion as string,\n\t\thack_license as string,\n\t\tvendor_id as string,\n\t\trate_code as string,\n\t\tstore_and_fwd_flag as string,\n\t\tpickup_datetime as string,\n\t\tdropoff_datetime as string,\n\t\tpassenger_count as string,\n\t\ttrip_time_in_secs as string,\n\t\ttrip_distance as string,\n\t\tpickup_longitude as string,\n\t\tpickup_latitude as string,\n\t\tdropoff_longitude as string,\n\t\tdropoff_latitude as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> TripDataCSV\nsource(output(\n\t\tmedallion as string,\n\t\thack_license as string,\n\t\tvendor_id as string,\n\t\tpickup_datetime as string,\n\t\tpayment_type as string,\n\t\tfare_amount as string,\n\t\tsurcharge as string,\n\t\tmta_tax as string,\n\t\ttip_amount as string,\n\t\ttolls_amount as string,\n\t\ttotal_amount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> FaresDataCSV\nInnerJoinWithTripFares aggregate(groupBy(payment_type),\n\taverage_fare = avg(toInteger(total_amount)),\n\t\ttotal_trip_distance = sum(toInteger(trip_distance))) ~> AggregateByPaymentType\nTripDataCSV, FaresDataCSV join(TripDataCSV@medallion == FaresDataCSV@medallion\n\t&& TripDataCSV@hack_license == FaresDataCSV@hack_license\n\t&& TripDataCSV@vendor_id == FaresDataCSV@vendor_id\n\t&& TripDataCSV@pickup_datetime == FaresDataCSV@pickup_datetime,\n\tjoinType:'inner',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> InnerJoinWithTripFares\nAggregateByPaymentType sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SynapseAnalyticsSink"
 				}
 			},
 			"dependsOn": [
@@ -1655,6 +1681,46 @@
 			"properties": {
 				"content": {
 					"query": "SELECT TOP 20 QT.query_sql_text, SP.query_plan,\n\tRS.min_duration/1000000 as min_duration_sec, \n\tRS.avg_duration/1000000 as avg_duration_sec, \n\tRS.[max_duration]/1000000 as max_duration_sec,\n\tRS.min_tempdb_space_used * 8192 / 1024 / 1024 as min_tempdb_MB,\n\tRS.avg_tempdb_space_used * 8192 / 1024 / 1024 as avg_tempdb_MB,\n\tRS.max_tempdb_space_used * 8192 / 1024 / 1024 as max_tempdb_MB\nFROM sys.query_store_query SQ\nINNER JOIN sys.query_store_query_text QT \n\tON SQ.query_text_id = QT.query_text_id\nINNER JOIN sys.query_store_plan SP \n\tON SQ.query_id = SP.query_id\nINNER JOIN sys.query_store_runtime_stats RS \n\tON SP.plan_id = RS.plan_id\nORDER BY avg_duration DESC\n\nselect * from sys.query_context_settings\n\nSELECT current_storage_size_mb, max_storage_size_mb\nFROM sys.database_query_store_options;\n\nALTER DATABASE jhs2gt2acq3getmwpocws1p1\nSET QUERY_STORE (\n    OPERATION_MODE = READ_WRITE,\n    CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 30),\n    DATA_FLUSH_INTERVAL_SECONDS = 3000,\n    MAX_STORAGE_SIZE_MB = 500,\n    INTERVAL_LENGTH_MINUTES = 15,\n    SIZE_BASED_CLEANUP_MODE = AUTO,\n    QUERY_CAPTURE_MODE = AUTO,\n    MAX_PLANS_PER_QUERY = 1000,\n    WAIT_STATS_CAPTURE_MODE = ON\n);\n\nSELECT name, is_auto_create_stats_on\nFROM sys.databases\n\n-- Monitor active queries\nSELECT *\nFROM sys.dm_pdw_exec_requests\nWHERE status not in ('Completed','Failed','Cancelled')\n  AND session_id <> session_id()\nORDER BY submit_time DESC;\n\n-- Find top 10 queries longest running queries\nSELECT TOP 10 *\nFROM sys.dm_pdw_exec_requests\nORDER BY total_elapsed_time DESC;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 10')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "DROP TABLE IF EXISTS dbo.Student1;\n\nCREATE TABLE Student\n(\n   [Name]     VARCHAR(50)\n  ,[Maths]    INT\n  ,[Science]  INT\n  ,[English]  INT\n);\n    \nINSERT INTO Student\nVALUES\n    ('Atul', 'Atul2',     90, 91, 80, 81, 70, 71);\nINSERT INTO Student\nVALUES\n    ('Vishal','Vishal2',  80, 81, 90, 91, 60, 61);\nINSERT INTO Student\nVALUES\n    ('Shailesh', 'Shailesh2', 95, 96, 85, 86, 99, 100);\nGO\n\nSELECT * FROM Student; \n\n\nSELECT Name1, case when Indicador= 'Maths1'then 1\n                when Indicador='Science1' then 2\n                else 3\n                END as Indicador, Valor1 \nFROM   \n    (SELECT Name1, Maths1,  Science1, English1 FROM Student) p\nUNPIVOT\n(\n  Valor1\n  FOR Indicador in (Maths1, Science1, English1)\n) Upt\n;\n\nSELECT Name1, Name2, Indicador, Valor1, Valor2\nfrom Student\n    cross APPLY (VALUES(Maths1, '1', Maths2, '1'),\n                        (Science1, '2',Science2 '2'),\n                        (English1, '3', English2 '3')\n                        ) unpt (Valor1, Valor2, Indicador);\n\nSELECT s.Name1, s.Name2, unpt.Indicador, unpt.Valor1 \nfrom Student as s\n    cross APPLY (values(s.Maths1, '1'),\n                        (s.Science1, '2'),\n                        (s.English1, '3'))\n                         unpt (Valor1, Indicador);\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "jhs2gt2acq3getmwpocws1p1",
+						"poolName": "jhs2gt2acq3getmwpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 11')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "DROP TABLE [dbo].[Student]\nGO\n\nSET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[Student]\n( \n\t[Name1] [varchar](50)  NULL,\n\t[Name2] [varchar](50)  NULL,\n\t[Maths1] [int]  NULL,\n\t[Maths2] [int]  NULL,\n\t[Science1] [int]  NULL,\n\t[Science2] [int]  NULL,\n\t[English1] [int]  NULL,\n\t[English2] [int]  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tCLUSTERED COLUMNSTORE INDEX\n)\nGO",
 					"metadata": {
 						"language": "sql"
 					},
@@ -1825,6 +1891,1128 @@
 					"resultLimit": 5000
 				},
 				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/06 Delta Lake Demo Full')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "spark31",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "cf27c913-2bb4-49e1-bb56-d45730377adc"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/8af3f092-169b-4f76-8cb3-822bfc9a88db/resourceGroups/rg-1-click-poc/providers/Microsoft.Synapse/workspaces/jhs2gt2acq3getmwpocws1/bigDataPools/spark31",
+						"name": "spark31",
+						"type": "Spark",
+						"endpoint": "https://jhs2gt2acq3getmwpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark31",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"# Using Linux foundation Delta Lake in Synapse Spark\n",
+							"In this notebook, how to read the delta table, how to write to delta table and timetravel is demonstrated"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"# Set the strorage path info\n",
+							"account_name = 'jhs2gt2acq3getmwpoc' # fill in your primary storage account name\n",
+							"container_name = 'dlsjhspocfs1' # fill in your container name\n",
+							"relative_csv_path = 'source' # fill in your relative CSV folder path\n",
+							"relative_delta_path='DELTA_HRData' # fill in your relative delta lake folder path\n",
+							"\n",
+							"adls_path = 'abfss://%s@%s.dfs.core.windows.net/' % (container_name, account_name)\n",
+							"print('Primary storage account path: ' + adls_path)\n",
+							"\n",
+							"#csv input file path\n",
+							"csvfilepath = adls_path + relative_csv_path + '/00 HRData.csv'\n",
+							"print ('CSV file path: '+ csvfilepath)\n",
+							"\n",
+							"# Delta Lake relative path\n",
+							"deltatablepath = adls_path + relative_delta_path + '/'\n",
+							"print('Delta Lake path: ' + deltatablepath)"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Read data in csv format\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
+							"csvhrdatadf.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Write data in delta format\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
+							"df_hr.show(10)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Check version with timetravel\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"from pyspark.sql.functions import *\r\n",
+							"from delta.tables import *\r\n",
+							"\r\n",
+							"deltaTable = DeltaTable.forPath(spark,deltatablepath)\r\n",
+							"display(deltaTable.history())"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Update records that match the given condition \n",
+							"Lets update here PayRate for employees whose payroll is less than 20 to make it lowest payrate value above 20.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"minPayRateAbove20 = df_hr.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\n",
+							"\n",
+							"#Number of records that will be updated\n",
+							"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"# Update PayRate to 20.5 for employees whose PayRate is below 20 \n",
+							"deltaTable.update(\n",
+							"    condition = (col(\"PayRate\")<minPayRateAbove20),\n",
+							"    set = {\"PayRate\":minPayRateAbove20}\n",
+							")\n",
+							"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).show()"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Validate changes by filtering records on condition\n",
+							"Validate no employees have PayRate less than or equal to 20\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
+							"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
+						],
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"## Audit data changes\n",
+							"First Check Version history\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"display(deltaTable.history())"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Undo changes for DeltaTable by restoring previous version\n",
+							"Lets set the PayRate as it was in previous version "
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"#Get verison 0 details\n",
+							"hrdataversion0 = spark\\\n",
+							"                        .read\\\n",
+							"                        .format(\"delta\")\\\n",
+							"                        .option(\"versionAsOF\",0)\\\n",
+							"                        .load(deltatablepath)\n",
+							"print(\"HR Dataframe as of version 0: \")\n",
+							"hrdataversion0.show(10)\n",
+							"\n",
+							"print(\"In version 0 count of employees who have PayRate less than or equal to 20 are:%d\" % hrdataversion0.filter(col(\"PayRate\")<minPayRateAbove20).count())\n",
+							"\n",
+							"\n",
+							"# Revert changes\n",
+							"hrdataversion0.write.format(\"delta\").mode(\"overwrite\").partitionBy(\"Department\").save(deltatablepath)\n",
+							"\n",
+							"#read data and check count of employees again\n",
+							"finalversion = spark.read.format(\"delta\").load(deltatablepath)\n",
+							"print(\"In latest version count of employees who have PayRate less than or equal to 20 are: %d\" % finalversion.filter(col(\"PayRate\")<minPayRateAbove20).count())\n",
+							"finalversion.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"display(deltaTable.history())"
+						],
+						"outputs": [],
+						"execution_count": 17
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Now work wiht Spark SQL"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"display(spark.sql(\"SELECT * FROM delta.`{}` LIMIT 5\".format(deltatablepath)))"
+						],
+						"outputs": [],
+						"execution_count": 18
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.sql(\"\"\"\r\n",
+							"  DROP TABLE IF EXISTS hr_delta\r\n",
+							"\"\"\")\r\n",
+							"spark.sql(\"\"\"\r\n",
+							"  CREATE TABLE hr_delta\r\n",
+							"  USING DELTA\r\n",
+							"  LOCATION '{}'\r\n",
+							"\"\"\".format(deltatablepath))"
+						],
+						"outputs": [],
+						"execution_count": 20
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"SELECT sum(payrate) FROM hr_delta"
+						],
+						"outputs": [],
+						"execution_count": 21
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"SELECT count(*) FROM hr_delta"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"DESCRIBE history hr_delta"
+						],
+						"outputs": [],
+						"execution_count": 23
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#csv input file path\r\n",
+							"updatecsvfilepath = adls_path + relative_csv_path + '/01 HRData.csv'\r\n",
+							"newDataDF = spark.read.option(\"header\",True).format(\"csv\").load(updatecsvfilepath)\r\n",
+							"newDataDF.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 24
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"newDataDF.count()"
+						],
+						"outputs": [],
+						"execution_count": 25
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"(newDataDF\r\n",
+							"  .write\r\n",
+							"  .format(\"delta\")\r\n",
+							"  .partitionBy(\"Department\")\r\n",
+							"  .mode(\"append\")\r\n",
+							"  .save(deltatablepath)\r\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 26
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"SELECT sum(payrate) FROM hr_delta;\r\n",
+							"SELECT count(*) FROM hr_delta;"
+						],
+						"outputs": [],
+						"execution_count": 28
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"DESCRIBE history hr_delta"
+						],
+						"outputs": [],
+						"execution_count": 29
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/06 Delta Lake Demo')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "spark31",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "d048110c-c3d8-4b3f-90e5-90e363728873"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/8af3f092-169b-4f76-8cb3-822bfc9a88db/resourceGroups/rg-1-click-poc/providers/Microsoft.Synapse/workspaces/jhs2gt2acq3getmwpocws1/bigDataPools/spark31",
+						"name": "spark31",
+						"type": "Spark",
+						"endpoint": "https://jhs2gt2acq3getmwpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/spark31",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.1",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"# Using Linux foundation Delta Lake in Synapse Spark\n",
+							"In this notebook, how to read the delta table, how to write to delta table and timetravel is demonstrated"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"# Set the strorage path info\n",
+							"account_name = 'jhs2gt2acq3getmwpoc' # fill in your primary storage account name\n",
+							"container_name = 'dlsjhspocfs1' # fill in your container name\n",
+							"relative_csv_path = 'source' # fill in your relative CSV folder path\n",
+							"relative_delta_path='DELTA_HRData' # fill in your relative delta lake folder path\n",
+							"\n",
+							"adls_path = 'abfss://%s@%s.dfs.core.windows.net/' % (container_name, account_name)\n",
+							"print('Primary storage account path: ' + adls_path)\n",
+							"\n",
+							"#csv input file path\n",
+							"csvfilepath = adls_path + relative_csv_path + '/00 HRData.csv'\n",
+							"print ('CSV file path: '+ csvfilepath)\n",
+							"\n",
+							"# Delta Lake relative path\n",
+							"deltatablepath = adls_path + relative_delta_path + '/'\n",
+							"print('Delta Lake path: ' + deltatablepath)"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Read data in csv format\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
+							"csvhrdatadf.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Write data in delta format\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
+							"df_hr.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"from pyspark.sql import functions as F\r\n",
+							"\r\n",
+							"dfWithDate =  F.to_date(F.to_timestamp(col(\"YearsOfService\"), \"M/d/yyyy H:mm\"))\r\n",
+							"\r\n",
+							"dfWithDate.show()"
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Add New Column YearsOfService\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"import pyspark.sql.functions as f\n",
+							"\n",
+							"df_hr_service = df_hr.withColumn('YearsOfService',2020-f.year(f.to_timestamp('DateofHire', 'MM/dd/yyyy H:mm')))\n",
+							"df_hr_service.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Overwrite the entire delta table\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"df_hr_service.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").option(\"mergeSchema\", True).save(deltatablepath)"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Validate delta table is updated with new column\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"hrdataframe = spark.read.format(\"delta\").load(deltatablepath)\n",
+							"hrdataframe.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 26
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Check version with timetravel\n",
+							"\n",
+							"we can see here yearsOfService column is not present in original delta table"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"hrdataoriginal = (spark\n",
+							"                    .read\n",
+							"                    .format(\"delta\")\n",
+							"                    .option(\"versionAsOf\",0)\n",
+							"                    .load(deltatablepath)\n",
+							"                    )\n",
+							"hrdataoriginal.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Update records that match the given condition \n",
+							"Lets update here PayRate for employees whose payroll is less than 20 to make it lowest payrate value above 20.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"from pyspark.sql.functions import *\n",
+							"from delta.tables import *\n",
+							"\n",
+							"deltaTable = DeltaTable.forPath(spark,deltatablepath)\n",
+							"\n",
+							"minPayRateAbove20 = hrdataoriginal.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\n",
+							"\n",
+							"#Number of records that will be updated\n",
+							"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 18
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"from pyspark.sql.functions import *\r\n",
+							"from delta.tables import *\r\n",
+							"\r\n",
+							"deltaTable = DeltaTable.forPath(spark,deltatablepath)\r\n",
+							"\r\n",
+							"minPayRateAbove20 = hrdataframe.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\r\n",
+							"\r\n",
+							"#Number of records that will be updated\r\n",
+							"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"# Update PayRate to 20.5 for employees whose PayRate is below 20 \n",
+							"deltaTable.update(\n",
+							"    condition = (col(\"PayRate\")<minPayRateAbove20),\n",
+							"    set = {\"PayRate\":minPayRateAbove20}\n",
+							")\n",
+							"deltaTable.toDF().filter(col(\"PayRate\")<minPayRateAbove20).show()"
+						],
+						"outputs": [],
+						"execution_count": 19
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Validate changes by filtering records on condition\n",
+							"Validate no employees have PayRate less than or equal to 20\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
+							"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
+						],
+						"outputs": [],
+						"execution_count": 34
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"## Audit data changes\n",
+							"or Check Version history\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"#get version history\n",
+							"deltaTable.history().show()"
+						],
+						"outputs": [],
+						"execution_count": 21
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"display(deltaTable.history(1))"
+						],
+						"outputs": [],
+						"execution_count": 49
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"### Undo changes for DeltaTable by restoring previous version\n",
+							"Lets set the PayRate as it was in previous version "
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"#Get verison 0 details\n",
+							"hrdataversion0 = spark\\\n",
+							"                        .read\\\n",
+							"                        .format(\"delta\")\\\n",
+							"                        .option(\"versionAsOF\",8)\\\n",
+							"                        .load(deltatablepath)\n",
+							"print(\"HR Dataframe as of version 0: \")\n",
+							"hrdataversion0.show(10)\n",
+							"\n",
+							"#totalPayrate0= spark.sql(\"SELECT sum (payrate) FROM delta.`{}` WHERE payrate <=20\".format(deltatablepath)\n",
+							"print(\"In version 0 count of employees who have PayRate less than or equal to 20 are:%d\" % hrdataversion0.filter(col(\"PayRate\")<minPayRateAbove20).agg({\"PayRate\":\"sum\"}).collect()[0][\"sum(PayRate)\"])\n",
+							"\n",
+							"\n",
+							"# Revert changes\n",
+							"hrdataversion0.write.format(\"delta\").mode(\"overwrite\").partitionBy(\"Department\").save(deltatablepath)\n",
+							"\n",
+							"#read data and check count of employees again\n",
+							"finalversion = spark.read.format(\"delta\").load(deltatablepath)\n",
+							"print(\"In latest version count of employees who have PayRate less than or equal to 20 are: %d\" % finalversion.filter(col(\"PayRate\")<minPayRateAbove20).agg({\"PayRate\":\"sum\"}).collect()[0][\"sum(PayRate)\"])\n",
+							"finalversion.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 54
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"display(spark.sql(\"SELECT * FROM delta.`{}` LIMIT 5\".format(deltatablepath)))"
+						],
+						"outputs": [],
+						"execution_count": 23
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.sql(\"\"\"\r\n",
+							"  DROP TABLE IF EXISTS hr_delta\r\n",
+							"\"\"\")\r\n",
+							"spark.sql(\"\"\"\r\n",
+							"  CREATE TABLE hr_delta\r\n",
+							"  USING DELTA\r\n",
+							"  LOCATION '{}'\r\n",
+							"\"\"\".format(deltatablepath))"
+						],
+						"outputs": [],
+						"execution_count": 24
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.sql(\"\"\"\r\n",
+							"  DROP TABLE IF EXISTS hr_delta\r\n",
+							"\"\"\")\r\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 56
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"SELECT sum(payrate) FROM hr_delta"
+						],
+						"outputs": [],
+						"execution_count": 31
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"SELECT count(*) FROM hr_delta"
+						],
+						"outputs": [],
+						"execution_count": 32
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"DESCRIBE history hr_delta"
+						],
+						"outputs": [],
+						"execution_count": 55
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"#csv input file path\r\n",
+							"updatecsvfilepath = adls_path + relative_csv_path + '/01 HRData.csv'\r\n",
+							"newDataDF = spark.read.option(\"header\",True).format(\"csv\").load(updatecsvfilepath)\r\n",
+							"newDataDF.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 28
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"newDataDF.count()"
+						],
+						"outputs": [],
+						"execution_count": 29
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"(newDataDF\r\n",
+							"  .write\r\n",
+							"  .format(\"delta\")\r\n",
+							"  .partitionBy(\"Department\")\r\n",
+							"  .mode(\"append\")\r\n",
+							"  .save(deltatablepath)\r\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 30
+					}
+				]
 			},
 			"dependsOn": []
 		},
@@ -2185,15 +3373,15 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "b1a459b1-ba02-424d-97c2-2e295697919f"
+						"spark.autotune.trackingId": "0b26de50-49ad-46f1-940f-4469aaa0fea4"
 					}
 				},
 				"metadata": {
 					"saveOutput": true,
 					"enableDebugMode": false,
 					"kernelspec": {
-						"name": "synapse_pyspark",
-						"display_name": "Synapse PySpark"
+						"name": "synapse_spark",
+						"display_name": "scala"
 					},
 					"language_info": {
 						"name": "scala"
@@ -2210,7 +3398,8 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": false
 					},
 					"sessionKeepAliveTimeout": 15
 				},
@@ -2352,6 +3541,7 @@
 					},
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"val dt = io.delta.tables.DeltaTable.forPath(dataPath)\r\n",
 							"\r\n",
@@ -2360,7 +3550,7 @@
 							"// optimize API returns statistics in Dataframe"
 						],
 						"outputs": [],
-						"execution_count": 5
+						"execution_count": 4
 					},
 					{
 						"cell_type": "code",
@@ -2380,7 +3570,7 @@
 							"dt.optimize().show"
 						],
 						"outputs": [],
-						"execution_count": 6
+						"execution_count": 5
 					},
 					{
 						"cell_type": "markdown",
@@ -2418,7 +3608,7 @@
 							"}"
 						],
 						"outputs": [],
-						"execution_count": 8
+						"execution_count": 6
 					},
 					{
 						"cell_type": "code",
@@ -2441,7 +3631,7 @@
 							"measure(println(agg.collect))"
 						],
 						"outputs": [],
-						"execution_count": 9
+						"execution_count": 7
 					},
 					{
 						"cell_type": "markdown",
@@ -2477,7 +3667,7 @@
 							"measure(println(agg.collect))"
 						],
 						"outputs": [],
-						"execution_count": 10
+						"execution_count": 8
 					},
 					{
 						"cell_type": "markdown",
@@ -2513,7 +3703,7 @@
 							"spark.sql(s\"OPTIMIZE delta.`$dataPath`\").show"
 						],
 						"outputs": [],
-						"execution_count": 11
+						"execution_count": 9
 					},
 					{
 						"cell_type": "markdown",
@@ -2545,7 +3735,7 @@
 							"spark.sql(s\"OPTIMIZE delta.`$dataPath` ZORDER BY (ColA)\").show"
 						],
 						"outputs": [],
-						"execution_count": 12
+						"execution_count": 10
 					},
 					{
 						"cell_type": "markdown",
@@ -2580,7 +3770,7 @@
 						"source": [
 							"%%pyspark\r\n",
 							"from delta.tables import *\r\n",
-							"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-108024')\r\n",
+							"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-550226')\r\n",
 							"display(dt.optimize(condition = \"colC = 1\"))\r\n",
 							"\r\n",
 							"# display(dt.optimize(condition = \"colC = 1\", zOrderBy = \"colA\"))\r\n",
@@ -2676,7 +3866,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "65fa8b1f-74cb-4150-a640-a6f075e8b4e3"
+						"spark.autotune.trackingId": "feafa851-6fbd-425d-a3fb-dcfc3e09d9c7"
 					}
 				},
 				"metadata": {
@@ -2701,13 +3891,15 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28
+						"memory": 28,
+						"automaticScaleJobs": false
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
+						"metadata": {},
 						"source": [
 							"# Define column headers\r\n",
 							"columns = [\"Employee\",\"Salary\"]\r\n",
@@ -2885,7 +4077,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "e1e1fee8-33fb-4fea-a680-1859b19be4b9"
+						"spark.autotune.trackingId": "65cab808-e2de-407e-a9fc-63e85af9bcfd"
 					}
 				},
 				"metadata": {
@@ -2910,8 +4102,7 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -3412,6 +4603,48 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Pipeline 1')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "06 Delta Lake Demo",
+						"type": "SynapseNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebook": {
+								"referenceName": "06 Delta Lake Demo",
+								"type": "NotebookReference"
+							},
+							"snapshot": true,
+							"sparkPool": {
+								"referenceName": "spark31",
+								"type": "BigDataPoolReference"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/notebooks/06 Delta Lake Demo')]",
+				"[concat(variables('workspaceId'), '/bigDataPools/spark31')]"
+			]
 		}
 	]
 }

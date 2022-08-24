@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "jhs2gt2acq3getmwpocws1"
 		},
+		"AzureSqlDatabase1_connectionString": {
+			"value": ""
+		},
 		"AzureSynapseAnalytics1_connectionString": {
 			"value": ""
 		},
