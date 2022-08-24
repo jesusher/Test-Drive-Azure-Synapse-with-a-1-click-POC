@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "4dff80e9-c78c-49b1-8459-a0c3091cd4ba"
+				"spark.autotune.trackingId": "94aa0db8-693a-4f4e-9db8-a69da89a625c"
 			}
 		},
 		"metadata": {
@@ -75,7 +75,7 @@
 					"deltatablepath = adls_path + relative_delta_path + '/'\n",
 					"print('Delta Lake path: ' + deltatablepath)"
 				],
-				"execution_count": 1
+				"execution_count": 3
 			},
 			{
 				"cell_type": "markdown",
