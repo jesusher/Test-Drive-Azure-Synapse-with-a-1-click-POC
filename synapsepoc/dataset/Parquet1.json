@@ -10,7 +10,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "*"
+				"fileName": "*",
+				"container": "citydatacontainer"
 			},
 			"compressionCodec": "none"
 		},
