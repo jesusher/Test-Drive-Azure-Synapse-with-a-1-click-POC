@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "jhs2gt2acq3getmwpocws1"
 		},
+		"AzureBlobStorageParquests_connectionString": {
+			"value": ""
+		},
 		"AzureSqlDatabase1_connectionString": {
 			"value": ""
 		},
@@ -12,10 +15,10 @@
 			"value": ""
 		},
 		"AzureSynapseAnalytics2_connectionString": {
-			"value": ""
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=jhs2gt2acq3getmwpocws1.sql.azuresynapse.net;Initial Catalog=jhs2gt2acq3getmwpocws1p1"
 		},
 		"TripFaresSynapseAnalyticsLinkedService_connectionString": {
-			"value": ""
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().SynapseWorkspaceName};Initial Catalog=@{linkedService().SQLDedicatedPoolName};User ID=@{linkedService().SQLLoginUsername}"
 		},
 		"adlsworspace_accountKey": {
 			"value": ""
@@ -34,6 +37,9 @@
 		},
 		"adlsworspace_properties_typeProperties_url": {
 			"value": "https://jhs2gt2acq3getmwpoc.dfs.core.windows.net"
+		},
+		"city_safety_seattle_sasUri": {
+			"value": ""
 		},
 		"keyVaultLinkedservice_properties_typeProperties_baseUrl": {
 			"value": "@{concat('https://',linkedService().keyVaultName,'.vault.azure.net/')}"

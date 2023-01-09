@@ -7,6 +7,10 @@
 			"metadata": "Workspace name",
 			"defaultValue": "jhs2gt2acq3getmwpocws1"
 		},
+		"AzureBlobStorageParquests_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorageParquests'"
+		},
 		"AzureSqlDatabase1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
@@ -17,11 +21,13 @@
 		},
 		"AzureSynapseAnalytics2_connectionString": {
 			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalytics2'"
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalytics2'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=jhs2gt2acq3getmwpocws1.sql.azuresynapse.net;Initial Catalog=jhs2gt2acq3getmwpocws1p1"
 		},
 		"TripFaresSynapseAnalyticsLinkedService_connectionString": {
 			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'TripFaresSynapseAnalyticsLinkedService'"
+			"metadata": "Secure string for 'connectionString' of 'TripFaresSynapseAnalyticsLinkedService'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().SynapseWorkspaceName};Initial Catalog=@{linkedService().SQLDedicatedPoolName};User ID=@{linkedService().SQLLoginUsername}"
 		},
 		"adlsworspace_accountKey": {
 			"type": "secureString",
@@ -46,6 +52,10 @@
 		"adlsworspace_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://jhs2gt2acq3getmwpoc.dfs.core.windows.net"
+		},
+		"city_safety_seattle_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'city_safety_seattle'"
 		},
 		"keyVaultLinkedservice_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -814,6 +824,32 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorageParquests",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "*",
+						"folderPath": "parquets",
+						"container": "jsonsource"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorageParquests')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SqlPoolTableEmployee')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -1233,6 +1269,25 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorageParquests')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorageParquests_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/AzureSqlDatabase1')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
@@ -1457,6 +1512,19 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/city_safety_seattle')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": "[parameters('city_safety_seattle_sasUri')]"
+				}
+			},
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('workspaceName'), '/keyVaultLinkedservice')]",
@@ -1735,6 +1803,26 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 12')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK     'https://azureopendatastorage.blob.core.windows.net/citydatacontainer/Safety/Release/city=Seattle/*.parquet',\n        FORMAT = 'parquet'\n    ) AS [result];",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -1915,7 +2003,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "cf27c913-2bb4-49e1-bb56-d45730377adc"
+						"spark.autotune.trackingId": "152a00bc-e72f-418e-8742-788e1dee4651"
 					}
 				},
 				"metadata": {
@@ -1940,15 +2028,13 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"# Using Linux foundation Delta Lake in Synapse Spark\n",
 							"In this notebook, how to read the delta table, how to write to delta table and timetravel is demonstrated"
@@ -1956,7 +2042,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Set the strorage path info\n",
 							"account_name = 'jhs2gt2acq3getmwpoc' # fill in your primary storage account name\n",
@@ -1980,7 +2065,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Read data in csv format\n",
 							"\n",
@@ -1989,7 +2073,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
 							"csvhrdatadf.show(10)"
@@ -1999,7 +2082,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Write data in delta format\n",
 							""
@@ -2007,7 +2089,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
 						],
@@ -2016,7 +2097,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
 							"df_hr.show(10)\n",
@@ -2027,7 +2107,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Check version with timetravel\n",
 							"\n",
@@ -2060,7 +2139,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Update records that match the given condition \n",
 							"Lets update here PayRate for employees whose payroll is less than 20 to make it lowest payrate value above 20.\n",
@@ -2069,7 +2147,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"minPayRateAbove20 = df_hr.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\n",
 							"\n",
@@ -2082,7 +2159,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Update PayRate to 20.5 for employees whose PayRate is below 20 \n",
 							"deltaTable.update(\n",
@@ -2096,7 +2172,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Validate changes by filtering records on condition\n",
 							"Validate no employees have PayRate less than or equal to 20\n",
@@ -2105,7 +2180,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
 							"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
@@ -2115,7 +2189,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Audit data changes\n",
 							"First Check Version history\n",
@@ -2135,7 +2208,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Undo changes for DeltaTable by restoring previous version\n",
 							"Lets set the PayRate as it was in previous version "
@@ -2143,7 +2215,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#Get verison 0 details\n",
 							"hrdataversion0 = spark\\\n",
@@ -2450,7 +2521,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "d048110c-c3d8-4b3f-90e5-90e363728873"
+						"spark.autotune.trackingId": "94aa0db8-693a-4f4e-9db8-a69da89a625c"
 					}
 				},
 				"metadata": {
@@ -2475,15 +2546,13 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"# Using Linux foundation Delta Lake in Synapse Spark\n",
 							"In this notebook, how to read the delta table, how to write to delta table and timetravel is demonstrated"
@@ -2491,7 +2560,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Set the strorage path info\n",
 							"account_name = 'jhs2gt2acq3getmwpoc' # fill in your primary storage account name\n",
@@ -2511,11 +2579,10 @@
 							"print('Delta Lake path: ' + deltatablepath)"
 						],
 						"outputs": [],
-						"execution_count": 1
+						"execution_count": 3
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Read data in csv format\n",
 							"\n",
@@ -2524,7 +2591,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
 							"csvhrdatadf.show(10)"
@@ -2534,7 +2600,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Write data in delta format\n",
 							""
@@ -2542,7 +2607,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
 						],
@@ -2551,7 +2615,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
 							"df_hr.show(10)"
@@ -2584,7 +2647,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Add New Column YearsOfService\n",
 							"\n",
@@ -2593,7 +2655,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"import pyspark.sql.functions as f\n",
 							"\n",
@@ -2605,7 +2666,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Overwrite the entire delta table\n",
 							""
@@ -2613,7 +2673,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df_hr_service.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").option(\"mergeSchema\", True).save(deltatablepath)"
 						],
@@ -2622,7 +2681,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Validate delta table is updated with new column\n",
 							""
@@ -2630,7 +2688,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"hrdataframe = spark.read.format(\"delta\").load(deltatablepath)\n",
 							"hrdataframe.show(10)"
@@ -2640,7 +2697,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Check version with timetravel\n",
 							"\n",
@@ -2649,7 +2705,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"hrdataoriginal = (spark\n",
 							"                    .read\n",
@@ -2664,7 +2719,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Update records that match the given condition \n",
 							"Lets update here PayRate for employees whose payroll is less than 20 to make it lowest payrate value above 20.\n",
@@ -2673,7 +2727,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"from pyspark.sql.functions import *\n",
 							"from delta.tables import *\n",
@@ -2718,7 +2771,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Update PayRate to 20.5 for employees whose PayRate is below 20 \n",
 							"deltaTable.update(\n",
@@ -2732,7 +2784,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Validate changes by filtering records on condition\n",
 							"Validate no employees have PayRate less than or equal to 20\n",
@@ -2741,7 +2792,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
 							"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
@@ -2751,7 +2801,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Audit data changes\n",
 							"or Check Version history\n",
@@ -2760,7 +2809,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#get version history\n",
 							"deltaTable.history().show()"
@@ -2781,7 +2829,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Undo changes for DeltaTable by restoring previous version\n",
 							"Lets set the PayRate as it was in previous version "
@@ -2789,7 +2836,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#Get verison 0 details\n",
 							"hrdataversion0 = spark\\\n",
@@ -3373,15 +3419,15 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "0b26de50-49ad-46f1-940f-4469aaa0fea4"
+						"spark.autotune.trackingId": "bb502295-5ff8-4564-9d1e-e7051edef879"
 					}
 				},
 				"metadata": {
 					"saveOutput": true,
 					"enableDebugMode": false,
 					"kernelspec": {
-						"name": "synapse_spark",
-						"display_name": "scala"
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
 					},
 					"language_info": {
 						"name": "scala"
@@ -3398,8 +3444,7 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 15
 				},
@@ -3541,7 +3586,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"val dt = io.delta.tables.DeltaTable.forPath(dataPath)\r\n",
 							"\r\n",
@@ -3866,7 +3910,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "feafa851-6fbd-425d-a3fb-dcfc3e09d9c7"
+						"spark.autotune.trackingId": "65fa8b1f-74cb-4150-a640-a6f075e8b4e3"
 					}
 				},
 				"metadata": {
@@ -3891,15 +3935,13 @@
 						"sparkVersion": "3.1",
 						"nodeCount": 10,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Define column headers\r\n",
 							"columns = [\"Employee\",\"Salary\"]\r\n",
@@ -4536,6 +4578,18 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/jhs2gt2acq3getmwpocws1p1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "southcentralus"
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/ws1sparkpool1')]",
 			"type": "Microsoft.Synapse/workspaces/bigDataPools",
 			"apiVersion": "2019-06-01-preview",
@@ -4586,65 +4640,11 @@
 			"location": "southcentralus"
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/jhs2gt2acq3getmwpocws1p1')]",
-			"type": "Microsoft.Synapse/workspaces/sqlPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"collation": "SQL_Latin1_General_CP1_CI_AS",
-				"maxSizeBytes": 263882790666240,
-				"annotations": []
-			},
-			"dependsOn": [],
-			"location": "southcentralus"
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/default')]",
 			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/Pipeline 1')]",
-			"type": "Microsoft.Synapse/workspaces/pipelines",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"activities": [
-					{
-						"name": "06 Delta Lake Demo",
-						"type": "SynapseNotebook",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"notebook": {
-								"referenceName": "06 Delta Lake Demo",
-								"type": "NotebookReference"
-							},
-							"snapshot": true,
-							"sparkPool": {
-								"referenceName": "spark31",
-								"type": "BigDataPoolReference"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/notebooks/06 Delta Lake Demo')]",
-				"[concat(variables('workspaceId'), '/bigDataPools/spark31')]"
-			]
 		}
 	]
 }
