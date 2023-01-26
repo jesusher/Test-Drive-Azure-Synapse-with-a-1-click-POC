@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 14",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseDelimitedTextFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseDelimitedTextFormat] \n\tWITH ( FORMAT_TYPE = DELIMITEDTEXT ,\n\t       FORMAT_OPTIONS (\n\t\t\t FIELD_TERMINATOR = ',',\n\t\t\t USE_TYPE_DEFAULT = FALSE\n\t\t\t))\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'stagingcsv') \n\tCREATE EXTERNAL DATA SOURCE [stagingcsv] \n\tWITH (\n\t\tLOCATION = 'abfss://public@jhsrflvqxgnwhpbmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE watermarks (\n\t[tablename] [varchar](50)  NULL,\n\t[query] [varchar](MAX)  NULL,\n\t[wm] [varchar](10)   NULL\n\t)\n\tWITH (\n\tLOCATION = 'cdc/cdc-control.csv',\n\tDATA_SOURCE = [stagingcsv],\n\tFILE_FORMAT = [SynapseDelimitedTextFormat]\n\t)\nGO\n\n\n\n\n-- This is auto-generated code\nSELECT *\nFROM\n    watermarks\n\nINSERT INTO watermarks VALUES ('aaa', 'bbb', '456');\n\nupdate watermarks set wm = '456'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "cdctest",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
