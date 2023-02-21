@@ -7,10 +7,10 @@
 		"type": "SqlServer",
 		"typeProperties": {
 			"connectionString": "integrated security=False;data source=10.1.0.4\\MSSQL2022;initial catalog=WideWorldImporters;user id=sa",
-			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIlNZTkFQU0VAN0FEN0NENjctM0Q2Qy00MkZGLTg4Q0YtQzIyM0M4MzlFQjlDXzcwNGI0MTg0LTcyNzktNGNiZi1hNjc1LThhMjFlYzQwYTkyNiINCn0="
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJkNDAwNGZhYy01MGM0LTQ4NzAtODc4Zi04NGQ2NDk3NzVjYzkiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
 		},
 		"connectVia": {
-			"referenceName": "AutoResolveIntegrationRuntime",
+			"referenceName": "SH-IR-SQLServer2022",
 			"type": "IntegrationRuntimeReference"
 		}
 	}
