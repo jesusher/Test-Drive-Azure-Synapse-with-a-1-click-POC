@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 15",
+	"properties": {
+		"content": {
+			"query": "    CREATE SCHEMA Application;\n    GO\n    CREATE SCHEMA Purchasing;\n    GO\n    CREATE SCHEMA Sales;\n    GO\n    CREATE SCHEMA Warehouse;\n    GO\n    CREATE SCHEMA Website;\n    GO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlsrv2022linked",
+				"poolName": "sqlsrv2022linked"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
