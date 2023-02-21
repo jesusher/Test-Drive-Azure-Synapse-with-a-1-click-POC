@@ -1,0 +1,15 @@
+{
+	"name": "adls_sqlsrv2022_liked",
+	"properties": {
+		"description": "Demo",
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://devdata001.dfs.core.windows.net/"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
