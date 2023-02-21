@@ -33,10 +33,6 @@
 			"metadata": "Secure string for 'connectionString' of 'TripFaresSynapseAnalyticsLinkedService'",
 			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().SynapseWorkspaceName};Initial Catalog=@{linkedService().SQLDedicatedPoolName};User ID=@{linkedService().SQLLoginUsername}"
 		},
-		"adl_lz_sqlsrv2022_accountKey": {
-			"type": "secureString",
-			"metadata": "Secure string for 'accountKey' of 'adl_lz_sqlsrv2022'"
-		},
 		"linkedService1_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'linkedService1'"
@@ -53,10 +49,6 @@
 			"type": "string",
 			"defaultValue": "@{concat('https://',linkedService().datalakeAccountName,'.dfs.core.windows.net')}"
 		},
-		"adl_lz_sqlsrv2022_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://devdata001.dfs.core.windows.net/"
-		},
 		"city_safety_seattle_sasUri": {
 			"type": "secureString",
 			"metadata": "Secure string for 'sasUri' of 'city_safety_seattle'"
@@ -68,6 +60,10 @@
 		"linkedService1_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://jhsrflvqxgnwhpbmpoc.dfs.core.windows.net/"
+		},
+		"adls_sqlsrv2022_liked_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://devdata001.dfs.core.windows.net/"
 		}
 	},
 	"variables": {
@@ -1533,29 +1529,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/adl_lz_sqlsrv2022')]",
-			"type": "Microsoft.Synapse/workspaces/linkedServices",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobFS",
-				"typeProperties": {
-					"url": "[parameters('adl_lz_sqlsrv2022_properties_typeProperties_url')]",
-					"accountKey": {
-						"type": "SecureString",
-						"value": "[parameters('adl_lz_sqlsrv2022_accountKey')]"
-					}
-				},
-				"connectVia": {
-					"referenceName": "AutoResolveIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/city_safety_seattle')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
@@ -2100,15 +2073,13 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": true
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"# Using Linux foundation Delta Lake in Synapse Spark\n",
 							"In this notebook, how to read the delta table, how to write to delta table and timetravel is demonstrated"
@@ -2116,7 +2087,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Set the strorage path info\n",
 							"account_name = 'jhs2gt2acq3getmwpoc' # fill in your primary storage account name\n",
@@ -2140,7 +2110,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Read data in csv format\n",
 							"\n",
@@ -2149,7 +2118,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
 							"csvhrdatadf.show(10)"
@@ -2159,7 +2127,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Write data in delta format\n",
 							""
@@ -2167,7 +2134,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
 						],
@@ -2176,7 +2142,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
 							"df_hr.show(10)\n",
@@ -2187,7 +2152,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Check version with timetravel\n",
 							"\n",
@@ -2220,7 +2184,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Update records that match the given condition \n",
 							"Lets update here PayRate for employees whose payroll is less than 20 to make it lowest payrate value above 20.\n",
@@ -2229,7 +2192,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"minPayRateAbove20 = df_hr.filter(\"PayRate>20\").agg({\"PayRate\":\"min\"}).collect()[0][\"min(PayRate)\"]\n",
 							"\n",
@@ -2242,7 +2204,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Update PayRate to 20.5 for employees whose PayRate is below 20 \n",
 							"deltaTable.update(\n",
@@ -2256,7 +2217,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Validate changes by filtering records on condition\n",
 							"Validate no employees have PayRate less than or equal to 20\n",
@@ -2265,7 +2225,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
 							"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
@@ -2275,7 +2234,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Audit data changes\n",
 							"First Check Version history\n",
@@ -2295,7 +2253,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Undo changes for DeltaTable by restoring previous version\n",
 							"Lets set the PayRate as it was in previous version "
@@ -2303,7 +2260,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#Get verison 0 details\n",
 							"hrdataversion0 = spark\\\n",
@@ -2635,15 +2591,13 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": true
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"# Using Linux foundation Delta Lake in Synapse Spark\n",
 							"In this notebook, how to read the delta table, how to write to delta table and timetravel is demonstrated"
@@ -2651,7 +2605,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Set the strorage path info\n",
 							"account_name = 'jhs2gt2acq3getmwpoc' # fill in your primary storage account name\n",
@@ -2675,7 +2628,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Read data in csv format\n",
 							"\n",
@@ -2684,7 +2636,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf = spark.read.option(\"header\",True).format(\"csv\").load(csvfilepath)\n",
 							"csvhrdatadf.show(10)"
@@ -2694,7 +2645,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Write data in delta format\n",
 							""
@@ -2702,7 +2652,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"csvhrdatadf.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").save(deltatablepath)"
 						],
@@ -2711,7 +2660,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df_hr = spark.read.format(\"delta\").load(deltatablepath)\n",
 							"df_hr.show(10)"
@@ -2744,7 +2692,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Add New Column YearsOfService\n",
 							"\n",
@@ -2753,7 +2700,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"import pyspark.sql.functions as f\n",
 							"\n",
@@ -2765,7 +2711,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Overwrite the entire delta table\n",
 							""
@@ -2773,7 +2718,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"df_hr_service.write.mode(\"overwrite\").format(\"delta\").partitionBy(\"Department\").option(\"mergeSchema\", True).save(deltatablepath)"
 						],
@@ -2782,7 +2726,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Validate delta table is updated with new column\n",
 							""
@@ -2790,7 +2733,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"hrdataframe = spark.read.format(\"delta\").load(deltatablepath)\n",
 							"hrdataframe.show(10)"
@@ -2800,7 +2742,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Check version with timetravel\n",
 							"\n",
@@ -2809,7 +2750,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"hrdataoriginal = (spark\n",
 							"                    .read\n",
@@ -2824,7 +2764,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Update records that match the given condition \n",
 							"Lets update here PayRate for employees whose payroll is less than 20 to make it lowest payrate value above 20.\n",
@@ -2833,7 +2772,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"from pyspark.sql.functions import *\n",
 							"from delta.tables import *\n",
@@ -2878,7 +2816,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Update PayRate to 20.5 for employees whose PayRate is below 20 \n",
 							"deltaTable.update(\n",
@@ -2892,7 +2829,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Validate changes by filtering records on condition\n",
 							"Validate no employees have PayRate less than or equal to 20\n",
@@ -2901,7 +2837,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"deltaTableAfterUpdate = DeltaTable.forPath(spark,deltatablepath)\n",
 							"deltaTableAfterUpdate.toDF().filter(col(\"PayRate\")<minPayRateAbove20).count()"
@@ -2911,7 +2846,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Audit data changes\n",
 							"or Check Version history\n",
@@ -2920,7 +2854,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#get version history\n",
 							"deltaTable.history().show()"
@@ -2941,7 +2874,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"### Undo changes for DeltaTable by restoring previous version\n",
 							"Lets set the PayRate as it was in previous version "
@@ -2949,7 +2881,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#Get verison 0 details\n",
 							"hrdataversion0 = spark\\\n",
@@ -3222,15 +3153,13 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": true
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"# Predict NYC Taxi Tips using Spark ML and Azure Open Datasets\n",
 							"\n",
@@ -3243,7 +3172,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"import matplotlib.pyplot as plt\n",
 							"\n",
@@ -3266,7 +3194,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Ingest Data¶ \n",
 							"\n",
@@ -3275,7 +3202,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Import NYC yellow cab data from Azure Open Datasets\n",
 							"from azureml.opendatasets import NycTlcYellow\n",
@@ -3294,7 +3220,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#To make development easier, faster and less expensive downsample for now\n",
 							"sampled_taxi_df = nyc_tlc_df.sample(True, 0.001, seed=1234)"
@@ -3304,7 +3229,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Exploratory Data Analysis\n",
 							"\n",
@@ -3313,7 +3237,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"#The charting package needs a Pandas dataframe or numpy array do the conversion\n",
 							"sampled_taxi_pd_df = sampled_taxi_df.toPandas()\n",
@@ -3348,7 +3271,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Data Prep and Featurization\n",
 							"\n",
@@ -3360,7 +3282,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"taxi_df = sampled_taxi_df.select('totalAmount', 'fareAmount', 'tipAmount', 'paymentType', 'rateCodeId', 'passengerCount'\\\n",
 							"                                , 'tripDistance', 'tpepPickupDateTime', 'tpepDropoffDateTime'\\\n",
@@ -3383,7 +3304,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Data Prep and Featurization Part 2\n",
 							"\n",
@@ -3395,7 +3315,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"taxi_featurised_df = taxi_df.select('totalAmount', 'fareAmount', 'tipAmount', 'paymentType', 'passengerCount'\\\n",
 							"                                                , 'tripDistance', 'weekdayString', 'pickupHour','tripTimeSecs','tipped'\\\n",
@@ -3412,7 +3331,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Encoding\n",
 							"\n",
@@ -3426,7 +3344,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# The sample uses an algorithm that only works with numeric features convert them so they can be consumed\n",
 							"sI1 = StringIndexer(inputCol=\"trafficTimeBins\", outputCol=\"trafficTimeBinsIndex\"); \n",
@@ -3442,7 +3359,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Generation of Testing and Training Data Sets\n",
 							"Simple split, 70% for training and 30% for testing the model. Playing with this ratio may result in different models.\n",
@@ -3451,7 +3367,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Decide on the split between training and testing data from the dataframe \n",
 							"trainingFraction = 0.7\n",
@@ -3466,7 +3381,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Train the Model\n",
 							"\n",
@@ -3475,7 +3389,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"## Create a new LR object for the model\n",
 							"logReg = LogisticRegression(maxIter=10, regParam=0.3, labelCol = 'tipped')\n",
@@ -3503,7 +3416,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Evaluate and Visualize\n",
 							"\n",
@@ -3513,7 +3425,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"## Plot the ROC curve, no need for pandas as this uses the modelSummary object\n",
 							"modelSummary = lrModel.stages[-1].summary\n",
@@ -3578,8 +3489,7 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": true
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 15
 				},
@@ -3721,7 +3631,6 @@
 					},
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"val dt = io.delta.tables.DeltaTable.forPath(dataPath)\r\n",
 							"\r\n",
@@ -4071,15 +3980,13 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": true
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
 						"source": [
 							"# Define column headers\r\n",
 							"columns = [\"Employee\",\"Salary\"]\r\n",
@@ -4282,8 +4189,7 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": true
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -4759,6 +4665,26 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/adls_sqlsrv2022_liked')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"description": "Demo",
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('adls_sqlsrv2022_liked_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
 		}
 	]
 }
