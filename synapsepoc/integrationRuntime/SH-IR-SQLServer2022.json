@@ -1,0 +1,6 @@
+{
+	"name": "SH-IR-SQLServer2022",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
