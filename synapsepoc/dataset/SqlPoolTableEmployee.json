@@ -32,7 +32,7 @@
 			"table": "DELTA_Employees"
 		},
 		"sqlPool": {
-			"referenceName": "jhs2gt2acq3getmwpocws1p1",
+			"referenceName": "jhsrflvqxgnwhpbmpocws1p1",
 			"type": "SqlPoolReference"
 		}
 	}
