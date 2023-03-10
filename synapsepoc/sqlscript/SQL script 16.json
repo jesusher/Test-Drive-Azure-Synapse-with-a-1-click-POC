@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 16",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'asadatalake01file_devdata001_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [asadatalake01file_devdata001_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION = 'abfss://asadatalake01file@devdata001.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE dbo.sales2 (\n\t[SaleKey] nvarchar(4000),\n\t[CityKey] nvarchar(4000),\n\t[CustomerKey] nvarchar(4000),\n\t[BillToCustomerKey] nvarchar(4000),\n\t[StockItemKey] nvarchar(4000),\n\t[DeliveryDateKey] nvarchar(4000),\n\t[SalespersonKey] nvarchar(4000),\n\t[WWIInvoiceID] nvarchar(4000),\n\t[Description] nvarchar(4000),\n\t[Package] nvarchar(4000),\n\t[Quantity] decimal(29, 10),\n\t[UnitPrice] nvarchar(4000),\n\t[TaxRate] nvarchar(4000),\n\t[TotalExcludingTax] nvarchar(4000),\n\t[TaxAmount] nvarchar(4000),\n\t[Profit] nvarchar(4000),\n\t[TotalIncludingTax] nvarchar(4000),\n\t[TotalDryItems] nvarchar(4000),\n\t[TotalChillerItems] nvarchar(4000),\n\t[LineageKey] nvarchar(4000)\n\t)\n\tWITH (\n\tLOCATION = 'wwi/factsale-parquet/**',\n\tDATA_SOURCE = [asadatalake01file_devdata001_dfs_core_windows_net],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM dbo.sales2\nGO\n\n\nSELECT \nsum(quantity)\nFROM SALES2",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "poc",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
