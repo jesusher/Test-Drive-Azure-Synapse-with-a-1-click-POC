@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 17",
+	"properties": {
+		"content": {
+			"query": "Create proc Test\nas\nSelect count (*) from dbo.sales3 as X\n\nSELECT definition, uses_ansi_nulls, uses_quoted_identifier, is_schema_bound  \nFROM sys.sql_modules  \nWHERE object_id = OBJECT_ID('dbo.Test');   \nGO   \n\nexec Test",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "poc",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
