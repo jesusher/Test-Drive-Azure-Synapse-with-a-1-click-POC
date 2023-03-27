@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 18",
+	"properties": {
+		"content": {
+			"query": "SELECT SERVERPROPERTY('ProductVersion')\n\nSELECT SERVERPROPERTY('EngineEdition')\n\nSELECT @@VERSION;\n\nSELECT name, compatibility_level from sys.databases;\n\nSELECT * from sys.database_scoped_configurations;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "jhsrflvqxgnwhpbmpocws1p1",
+				"poolName": "jhsrflvqxgnwhpbmpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
