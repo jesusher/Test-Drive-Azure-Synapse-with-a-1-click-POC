@@ -1,5 +1,5 @@
 {
-	"name": "SQL script 15",
+	"name": "Create Views",
 	"properties": {
 		"content": {
 			"query": "-- This is auto-generated code\nCREATE database poc;\n\n\nCREATE VIEW sales as \nSELECT *\nFROM\n    OPENROWSET(\n        BULK 'https://devdata001.dfs.core.windows.net/asadatalake01file/wwi/factsale-parquet/**',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\nSELECT \nsum(cast(replace(quantity, ',', '.') as decimal(29, 10)))\nFROM SALES2\n\nDROP EXTERNAL TABLE sales2\n\nCREATE EXTERNAL TABLE dbo.sales3 \nWITH (\n\tLOCATION = 'wwi/factsale-parquet/',\n\tDATA_SOURCE = [asadatalake01file_devdata001_dfs_core_windows_net],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t) AS\nSELECT *\nFROM\n    OPENROWSET(\n        BULK 'https://devdata001.dfs.core.windows.net/asadatalake01file/wwi/factsale-parquet/*/*/*/*.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n\nCREATE VIEW sales4 as \nSELECT \n\t[SaleKey] ,\n\t[CityKey],\n\t[CustomerKey],\n\t[BillToCustomerKey],\n\t[StockItemKey],\n\t[DeliveryDateKey],\n\t[SalespersonKey],\n\t[WWIInvoiceID],\n\t[Description],\n\t[Package],\n\tcast(replace(quantity, ',', '.') as decimal(29, 4)) cantidad\nFROM\n    OPENROWSET(\n        BULK 'https://devdata001.dfs.core.windows.net/asadatalake01file/wwi/factsale-parquet/**',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n\nSELECT \nsum(cantidad)\nFROM SALES4",
