@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 19",
+	"properties": {
+		"content": {
+			"query": "CREATE USER [synadmin@corazongeek.com] FROM EXTERNAL PROVIDER;\nGO\n\nGRANT CONTROL TO [synadmin@corazongeek.com]\n\n\nGRANT SELECT ON SCHEMA::Practia TO [synadmin@corazongeek.com]\nGO\nGRANT SELECT ON OBJECT::Practia.sales4 TO [synadmin@corazongeek.com]\nGO\nGRANT REFERENCES ON DATABASE SCOPED CREDENTIAL::MyCosmosDbAccountCredential TO [synadmin@corazongeek.com]\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "poc",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
